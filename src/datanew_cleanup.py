@@ -17,7 +17,7 @@ from PIL import AvifImagePlugin, Image, ImageOps
 from .common import CLASSES, ROOT, read_csv, write_csv, write_json
 from .data import dhash
 from .dataset_acquire import prepare as prepare_native
-from .dataset_review import load_approval, snapshot_records
+from .dataset_review import load_approval, review_summary, snapshot_records
 
 # Avoid starting dozens of codec threads for every tiny image on Windows.
 AvifImagePlugin.MAX_THREADS = 1
@@ -171,6 +171,33 @@ def assert_baseline(root, baseline):
         raise ValueError('Acquisition lock/STOP exists; abort')
 
 
+def reservations(root):
+    result = defaultdict(set)
+    for path in (root / 'data/metadata').rglob('development_reservations.json'):
+        data = json.loads(path.read_text(encoding='utf-8'))
+        for name, values in data.items():
+            if isinstance(values, list) and all(isinstance(v, str) for v in values):
+                result[name].update(values)
+    return result
+
+
+def eligibility_reason(row, approved, reserved):
+    for field, plural in (('id', 'ids'), ('source_identity', 'source_identities'),
+                          ('group_id', 'group_ids'), ('dataset_ref', 'dataset_refs'),
+                          ('original_sha256', 'original_sha256')):
+        if row.get(field) in reserved.get(plural, set()):
+            return 'reserved_source_or_group'
+    if row.get('development_only'):
+        return 'development_only'
+    if not row.get('photo_verified'):
+        return 'photo_not_verified'
+    if row['id'] not in approved and not row.get('rights_verified'):
+        return 'rights_or_user_approval_missing'
+    if not row.get('physical_groups_verified'):
+        return 'independent_physical_group_unverified'
+    return None
+
+
 def verify_copy(source, destination):
     original = {p.relative_to(source).as_posix(): sha(p)
                 for p in source.rglob('*') if p.is_file()}
@@ -264,7 +291,9 @@ def prepare_run(root, work, resume=False):
     meta = root / 'data/metadata/fruit_acquisition_08'
     records = snapshot_records(meta / 'attempts.jsonl')
     approval = load_approval(meta / 'user_approval.json')
+    review_summary(records, approval)  # Verify approval bindings, not IDs alone.
     approved = {r['id'] for r in approval['accepted']} if approval else set()
+    reserved = reservations(root)
     records.sort(key=lambda r: (r['id'] not in approved, r['class'], r['id']))
     decisions, selected, source_hashes = [], [], set()
     for n, row in enumerate(records):
@@ -272,6 +301,11 @@ def prepare_run(root, work, resume=False):
         if row['status'] != 'pending_review' or counts[label] >= 5000:
             continue
         decision = {'id': row['id'], 'class': label}
+        exclusion = eligibility_reason(row, approved, reserved)
+        if exclusion:
+            decision['reason'] = exclusion
+            decisions.append(decision)
+            continue
         try:
             original_path = root / row['original_path']
             if sha(original_path) != row['original_sha256']:
@@ -342,6 +376,7 @@ def prepare_run(root, work, resume=False):
                    'semantic_rights_review_complete': False, 'training_ready': False,
                    'retained_provenance': 'Legacy real tag/source basename; original rights/group provenance unverified',
                    'selected_unapproved': sum(not s['user_confirmed'] for s in selected),
+                   'source_eligibility': 'No retired/reserved/development-only; photo verified, rights/user approval bound, independent groups verified',
                    'status': 'prepared_not_promoted', 'updated_unix': time.time()})
     assert_baseline(root, baseline)
     write_json(work / 'report.json', report)

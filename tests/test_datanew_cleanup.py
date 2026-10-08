@@ -70,3 +70,23 @@ def test_backup_detects_modified_copy(tmp_path):
     (b / 'image').write_bytes(b'two')
     with pytest.raises(ValueError, match='Backup'):
         clean.verify_copy(a, b)
+
+
+@pytest.mark.parametrize('field,reason', [
+    ('photo_verified', 'photo_not_verified'),
+    ('rights_verified', 'rights_or_user_approval_missing'),
+    ('physical_groups_verified', 'independent_physical_group_unverified')])
+def test_insufficiently_reviewed_sources_cannot_fill_quota(field, reason):
+    row = {'id': 'new', 'photo_verified': True, 'rights_verified': True,
+           'physical_groups_verified': True}
+    assert clean.eligibility_reason(row, set(), {}) is None
+    row[field] = False
+    assert clean.eligibility_reason(row, set(), {}) == reason
+
+
+@pytest.mark.parametrize('field,plural', [('id', 'ids'), ('group_id', 'group_ids'),
+                                       ('source_identity', 'source_identities'),
+                                       ('original_sha256', 'original_sha256')])
+def test_reserved_aliases_are_excluded(field, plural):
+    row = {'id': 'new', field: 'blocked'}
+    assert clean.eligibility_reason(row, set(), {plural: {'blocked'}}) == 'reserved_source_or_group'
