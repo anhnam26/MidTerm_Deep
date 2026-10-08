@@ -11,9 +11,9 @@ Train:
 apple = 5000 (shortage 0)
 banana = 4480 (shortage 520)
 orange = 5000 (shortage 0)
-strawberry = 4815 (shortage 185)
+strawberry = 4888 (shortage 112)
 pineapple = 2685 (shortage 2315)
-21980 total; target 25000; shortage 3020
+22053 total; target 25000; shortage 2947
 
 Test:
 50 images/class
@@ -23,21 +23,24 @@ Mid224:
 Resolution = 224x224
 Format = AVIF
 Quality = 6
-Size = 20,369,509 image bytes (20.369509 MB)
+Size = 20,425,389 image bytes (20.425389 MB)
 Limit = 25 MB
 
 Mid32:
 Resolution = 32x32
 Format = WebP
 Quality = 90
-Size = 13,032,886 image bytes (13.032886 MB)
+Size = 13,071,104 image bytes (13.071104 MB)
 Limit = 20 MB
 
-Total images per dataset = 22230
+Total images per dataset = 22303
 
 Cleanup status = PARTIAL: augmentation and exact duplicates removed; quota not met.
 Removed = 3019 manifest-augmented pairs + 1 remaining exact-duplicate pair.
-Replacements = 0 eligible reviewed, unreserved independent sources.
+Replenishment = 73 reviewed strawberry originals, one per unreserved author-indexed specimen.
+Source = yihfeng/strawberry-maturity, author MIT license, iPhone14 photographs.
+Review = agent visual review + author specimen mapping, NOT fabricated user confirmation.
+Excluded = 5 baseline similarity suspects + 9 new224 cross-reference suspects.
 Retained image files were copied unchanged; no recompression or quality reduction.
 All 250 test files per resolution were preserved unchanged.
 Exact file/pixel duplicate groups after cleanup = 0.
@@ -49,3 +52,10 @@ Audit = DataNew/cleanup_report.json
 Provenance = DataNew/source_provenance.json
 Backup = outputs/checkpoints/datanew_cleanup_15/backup
 Original directory = outputs/checkpoints/datanew_cleanup_15/previous_DataNew
+Latest replenishment backup = outputs/checkpoints/datanew_fill_16/reviewed_replenish_final/backup
+Latest previous directory = outputs/checkpoints/datanew_fill_16/reviewed_replenish_final/previous_DataNew
+Post-promote verification = outputs/checkpoints/datanew_fill_16/reviewed_replenish_final/post_promote_verification.json
+Replenishment review = DataNew/replenishment_review.json
+New acquisition = 35 originals downloaded for review, NOT added to quota.
+Blockers = Commons HTTP429; likely StrawDI mirror rights conflict; other sources
+lack original rights or physical specimen mapping. No access bypass or padding.
