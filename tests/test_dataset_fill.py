@@ -129,3 +129,12 @@ def test_development_source_never_downloaded(tmp_path):
 def test_dataset_wide_and_alias_reservations(field, collection):
     row = dict(candidate(), **{field: 'holdout'})
     assert fill.ScreeningIndex(reserved={collection: {'holdout'}}).is_reserved(row)
+
+
+def test_prepared224_similarity_cannot_be_missed_by_native_only_reference():
+    old = {'id': 'old', 'visual': ['0123456789abcdef'] * 4,
+           'visual224': ['a1b2c3d4e5f67890'] * 4}
+    index = fill.ScreeningIndex([old])
+    exact, near = index.matches({'id': 'new', 'visual': ['fedcba9876543210'] * 4,
+                                'visual224': ['a1b2c3d4e5f67890'] * 4})
+    assert not exact and near == ['old']

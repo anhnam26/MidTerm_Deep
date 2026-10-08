@@ -85,7 +85,8 @@ def fingerprint(blob):
     return {'original_sha256': hashlib.sha256(blob).hexdigest(),
             'native_pixel_sha256': hashlib.sha256(str(native.size).encode() + native.tobytes()).hexdigest(),
             'pixel224_sha256': hashlib.sha256(pairs[224].tobytes()).hexdigest(),
-            'native_size': list(native.size), 'visual': visual_hashes(native)}
+            'native_size': list(native.size), 'visual': visual_hashes(native),
+            'visual224': visual_hashes(pairs[224])}
 
 
 class ScreeningIndex:
@@ -115,6 +116,8 @@ class ScreeningIndex:
             hashes = [row['dhash']] * 3 + [row.get('center_crop_dhash', row['dhash'])]
         if hashes:
             self.near.add(identifier, hashes)
+        if row.get('visual224'):
+            self.near.add(identifier, row['visual224'])
 
     def matches(self, row):
         exact = set()
@@ -123,6 +126,8 @@ class ScreeningIndex:
         for field in ('original_sha256', 'native_pixel_sha256', 'pixel224_sha256'):
             exact.update(self.hashes.get(row.get(field), ()))
         near = set(self.near.matches(row['visual'])) if row.get('visual') else set()
+        if row.get('visual224'):
+            near.update(self.near.matches(row['visual224']))
         return sorted(exact), sorted(near - exact)
 
 
