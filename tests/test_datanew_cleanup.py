@@ -29,10 +29,13 @@ def test_duplicate_in_either_size_removes_the_whole_train_pair(size):
     assert removed[0]['reason'] == 'exact_content_or_source_duplicate'
 
 
-def test_near_matches_fail_closed():
-    kept, removed = clean.choose_retained([item('one'), item('two')])
-    assert len(kept) == 1
-    assert removed[0]['reason'] == 'near_match_unresolved_excluded'
+def test_existing_similarity_is_flagged_not_deleted_without_proof():
+    flags = []
+    kept, removed = clean.choose_retained([item('one'), item('two')], flags)
+    assert len(kept) == 2
+    assert not removed
+    assert len(flags) == 1
+    assert flags[0]['status'] == 'unresolved_not_deleted_by_dhash_alone'
 
 
 def test_seven_chunk_index_covers_six_changed_bits():

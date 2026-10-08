@@ -6,7 +6,6 @@ perceptual matches are excluded, not silently treated as independent sources.
 
 import argparse
 from collections import Counter, defaultdict
-import csv
 import hashlib
 import json
 from pathlib import Path
@@ -116,8 +115,8 @@ def inventory(base, rows):
     return result
 
 
-def choose_retained(items):
-    """Test wins over train; fail closed on near matches, never keep augments."""
+def choose_retained(items, near_flags=None):
+    """Test wins over train. Perceptual similarity is NOT proof of duplication."""
     kept, removed = [], []
     exact = {}
     sources = {}
@@ -140,8 +139,9 @@ def choose_retained(items):
                 reason = 'exact_content_or_source_duplicate'
             else:
                 matches = near.matches(item['images']['224']['visual'])
-                if matches:
-                    reason = 'near_match_unresolved_excluded'
+                if matches and near_flags is not None:
+                    near_flags.append({'key': item['key'], 'matches': matches[:20],
+                                       'status': 'unresolved_not_deleted_by_dhash_alone'})
         if reason:
             removed.append({'key': item['key'], 'reason': reason, 'matches': sorted(set(matches))})
             continue
@@ -216,24 +216,34 @@ def audit_items(items):
             'augmented': sum(i['row']['type'] == 'augmented' for i in items)}
 
 
-def prepare_run(root, work):
-    work.mkdir(parents=True, exist_ok=False)
-    baseline = metadata_baseline(root)
+def prepare_run(root, work, resume=False):
+    if not resume:
+        work.mkdir(parents=True, exist_ok=False)
+    baseline = (json.loads((work / 'baseline.json').read_text(encoding='utf-8'))
+                if resume else metadata_baseline(root))
     assert_baseline(root, baseline)
-    write_json(work / 'baseline.json', baseline)
+    if not resume:
+        write_json(work / 'baseline.json', baseline)
     source = root / 'DataNew'
     backup = work / 'backup/DataNew'
-    shutil.copytree(source, backup)
     manifest = root / 'results/dataset_manifest.csv'
-    shutil.copy2(manifest, work / 'backup/dataset_manifest.csv')
-    backup_hashes = verify_copy(source, backup)
-    if sha(manifest) != sha(work / 'backup/dataset_manifest.csv'):
-        raise ValueError('Manifest backup mismatch')
-    write_json(work / 'backup_hashes.json', backup_hashes)
-    print('BACKUP_VERIFIED', len(backup_hashes), flush=True)
-    original = inventory(backup, read_csv(work / 'backup/dataset_manifest.csv'))
-    write_json(work / 'original_inventory.json', original)
-    kept, removed = choose_retained(original)
+    if resume:
+        original = json.loads((work / 'original_inventory.json').read_text(encoding='utf-8'))
+        if (work / 'staging').exists():
+            (work / 'staging').rename(work / ('abandoned_staging_' + str(int(time.time()))))
+    else:
+        shutil.copytree(source, backup)
+        shutil.copy2(manifest, work / 'backup/dataset_manifest.csv')
+        backup_hashes = verify_copy(source, backup)
+        if sha(manifest) != sha(work / 'backup/dataset_manifest.csv'):
+            raise ValueError('Manifest backup mismatch')
+        write_json(work / 'backup_hashes.json', backup_hashes)
+        print('BACKUP_VERIFIED', len(backup_hashes), flush=True)
+        original = inventory(backup, read_csv(work / 'backup/dataset_manifest.csv'))
+        write_json(work / 'original_inventory.json', original)
+    near_flags = []
+    kept, removed = choose_retained(original, near_flags)
+    write_json(work / 'retained_near_flags.json', near_flags)
     write_json(work / 'removed.json', removed)
     print('RETAINED', len(kept), 'REMOVED', len(removed), dict(Counter(r['reason'] for r in removed)), flush=True)
     stage = work / 'staging/DataNew'
@@ -268,7 +278,7 @@ def prepare_run(root, work):
                 raise ValueError('Original SHA mismatch')
             if any(h in row.get('source_name', '').lower() for h in ('augment', 'synthetic', 'edited')):
                 raise ValueError('Augmentation/synthetic source hint')
-            if row['original_sha256'] in source_hashes:
+            if row['original_sha256'] in source_hashes or row['native_pixel_sha256'] in source_hashes:
                 raise ValueError('Already selected source SHA')
             with Image.open(original_path) as im:
                 native, pairs = prepare_native(im)
@@ -325,9 +335,10 @@ def prepare_run(root, work):
     write_json(work / 'final_inventory.json', verified)
     report = audit_items(verified)
     report.update({'removed_pairs': len(removed), 'removed_reasons': dict(Counter(r['reason'] for r in removed)),
+                   'retained_unresolved_near_flags': len(near_flags),
                    'selected_pairs': len(selected), 'candidate_decisions': dict(Counter(r['reason'] for r in decisions)),
                    'backup': str(backup), 'codec': {'224': 'AVIF quality6 speed6', '32': 'WebP quality90 method4'},
-                   'near_screening': 'dHash distance<=6 full/mirror/flip/center, fail closed; not exhaustive proof',
+                   'near_screening': 'New replacements fail closed at dHash<=6 full/mirror/flip/center. Existing similarity only flagged, never proof; not exhaustive.',
                    'semantic_rights_review_complete': False, 'training_ready': False,
                    'retained_provenance': 'Legacy real tag/source basename; original rights/group provenance unverified',
                    'selected_unapproved': sum(not s['user_confirmed'] for s in selected),
@@ -382,12 +393,12 @@ def promote(root, work):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('prepare', 'promote'))
+    parser.add_argument('command', choices=('prepare', 'resume-prepare', 'promote'))
     parser.add_argument('--root', type=Path, default=ROOT)
     parser.add_argument('--work', type=Path, required=True)
     args = parser.parse_args()
-    if args.command == 'prepare':
-        prepare_run(args.root.resolve(), args.work.resolve())
+    if args.command in ('prepare', 'resume-prepare'):
+        prepare_run(args.root.resolve(), args.work.resolve(), resume=args.command == 'resume-prepare')
     else:
         promote(args.root.resolve(), args.work.resolve())
 
