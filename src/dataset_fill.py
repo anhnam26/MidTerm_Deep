@@ -18,7 +18,7 @@ from urllib.parse import unquote, urlsplit
 from PIL import Image
 
 from .common import CLASSES, ROOT, write_json
-from .datanew_cleanup import NearIndex, metadata_baseline, visual_hashes
+from .datanew_cleanup import NearIndex, metadata_baseline, reservations, visual_hashes
 from .dataset_acquire import MAX_FILE_BYTES, atomic_bytes, prepare
 
 
@@ -89,10 +89,11 @@ def fingerprint(blob):
 
 
 class ScreeningIndex:
-    def __init__(self, rows=(), final_items=()):
+    def __init__(self, rows=(), final_items=(), reserved=None):
         self.sources = defaultdict(set)
         self.hashes = defaultdict(set)
         self.near = NearIndex()
+        self.reserved = reserved or {}
         for row in rows:
             self.add(row)
         for item in final_items:
@@ -123,6 +124,20 @@ class ScreeningIndex:
             exact.update(self.hashes.get(row.get(field), ()))
         near = set(self.near.matches(row['visual'])) if row.get('visual') else set()
         return sorted(exact), sorted(near - exact)
+
+
+    def is_reserved(self, row):
+        if row.get('development_only'):
+            return True
+        for field, collection in (('id', 'ids'), ('group_id', 'group_ids'),
+                                  ('original_sha256', 'original_sha256'),
+                                  ('source_identity', 'source_identity')):
+            if row.get(field) and row[field] in self.reserved.get(collection, ()):
+                return True
+        for field in ('source_identity', 'original_path', 'local_path'):
+            if row.get(field) and row[field] in self.reserved.get('source_aliases', ()):
+                return True
+        return False
 
 
 def download_original(url):
@@ -169,6 +184,9 @@ def stage(candidates, index, out, fetch=download_original):
             if hashlib.sha256(blob).hexdigest() != row['original_sha256']:
                 raise ValueError('Changed/missing staged original')
         index.add(row)
+    if any(row.get('status') == 'access_blocked' for row in decisions):
+        print('ACCESS BLOCK checkpoint retained; no automatic retry', flush=True)
+        return decisions
     if len({row['id'] for row in candidates}) != len(candidates):
         raise ValueError('Duplicate candidate IDs')
     for candidate in candidates:
@@ -179,7 +197,9 @@ def stage(candidates, index, out, fetch=download_original):
         row = dict(candidate, status='failed')
         exact, _ = index.matches(row)
         try:
-            if exact:
+            if index.is_reserved(row):
+                row['status'] = 'reserved_source_or_group'
+            elif exact:
                 row.update(status='duplicate_identity', exact_matches=exact)
             else:
                 blob = fetch(row['download_url'])
@@ -189,7 +209,8 @@ def stage(candidates, index, out, fetch=download_original):
                 row['original_path'] = path.as_posix()
                 exact, near = index.matches(row)
                 row.update(exact_matches=exact, near_matches=near,
-                           status='duplicate_exact' if exact else 'near_unresolved' if near else 'needs_review')
+                           status='reserved_source_or_group' if index.is_reserved(row)
+                           else 'duplicate_exact' if exact else 'near_unresolved' if near else 'needs_review')
                 index.add(row)
         except (ValueError, OSError, subprocess.SubprocessError) as error:
             row['error'] = str(error)
@@ -211,14 +232,20 @@ def main():
     parser.add_argument('--candidates', type=Path, required=True)
     parser.add_argument('--history', type=Path, required=True)
     parser.add_argument('--baseline-inventory', type=Path, required=True)
+    parser.add_argument('--exclusion-inventory', type=Path)
+    parser.add_argument('--additional-history', type=Path, action='append', default=[])
     parser.add_argument('--out', type=Path, required=True)
     args = parser.parse_args()
     protected = metadata_baseline(ROOT)
     history = json.loads(args.history.read_text(encoding='utf-8'))['rows']
     journal = ROOT / 'data/metadata/fruit_acquisition_08/attempts.jsonl'
     history.extend(json.loads(line) for line in journal.read_bytes().splitlines())
+    for path in args.additional_history:
+        history.extend(json.loads(path.read_text(encoding='utf-8')))
     baseline = json.loads(args.baseline_inventory.read_text(encoding='utf-8'))
-    index = ScreeningIndex(history, baseline)
+    if args.exclusion_inventory:
+        baseline.extend(json.loads(args.exclusion_inventory.read_text(encoding='utf-8')))
+    index = ScreeningIndex(history, baseline, reservations(ROOT))
     stage(json.loads(args.candidates.read_text(encoding='utf-8')), index, args.out)
     if metadata_baseline(ROOT) != protected:
         raise ValueError('Protected metadata changed during isolated screening')

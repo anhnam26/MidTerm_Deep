@@ -87,6 +87,8 @@ def test_access_block_stops_without_trying_next_candidate(tmp_path):
         raise PermissionError('ACCESS_BLOCK_429')
     result = fill.stage([candidate(), candidate('commons_2')], fill.ScreeningIndex(), tmp_path, fetch)
     assert len(result) == len(calls) == 1 and result[0]['status'] == 'access_blocked'
+    fill.stage([candidate(), candidate('commons_2')], fill.ScreeningIndex(), tmp_path, fetch)
+    assert len(calls) == 1
 
 
 def test_history_duplicate_is_not_downloaded(tmp_path):
@@ -99,3 +101,24 @@ def test_history_duplicate_is_not_downloaded(tmp_path):
 def test_original_hash_matches_staged_bytes(tmp_path):
     result = fill.stage([candidate()], fill.ScreeningIndex(), tmp_path, lambda _: blob())
     assert result[0]['original_sha256'] == hashlib.sha256((tmp_path / result[0]['original_path']).read_bytes()).hexdigest()
+
+
+def test_reserved_group_is_never_downloaded(tmp_path):
+    row = dict(candidate(), group_id='holdout')
+    def fetch(url):
+        raise AssertionError('Reserved group must not be downloaded')
+    result = fill.stage([row], fill.ScreeningIndex(reserved={'group_ids': {'holdout'}}), tmp_path, fetch)
+    assert result[0]['status'] == 'reserved_source_or_group'
+
+
+def test_reserved_byte_hash_cannot_gain_eligibility_by_new_id(tmp_path):
+    index = fill.ScreeningIndex(reserved={'original_sha256': {hashlib.sha256(blob()).hexdigest()}})
+    result = fill.stage([candidate()], index, tmp_path, lambda _: blob())
+    assert result[0]['status'] == 'reserved_source_or_group'
+
+
+def test_development_source_never_downloaded(tmp_path):
+    def fetch(url):
+        raise AssertionError('Development source must not be downloaded')
+    result = fill.stage([dict(candidate(), development_only=True)], fill.ScreeningIndex(), tmp_path, fetch)
+    assert result[0]['status'] == 'reserved_source_or_group'
