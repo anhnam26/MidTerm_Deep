@@ -131,7 +131,8 @@ class ScreeningIndex:
             return True
         for field, collection in (('id', 'ids'), ('group_id', 'group_ids'),
                                   ('original_sha256', 'original_sha256'),
-                                  ('source_identity', 'source_identity')):
+                                  ('source_identity', 'source_identities'),
+                                  ('dataset_ref', 'dataset_refs')):
             if row.get(field) and row[field] in self.reserved.get(collection, ()):
                 return True
         for field in ('source_identity', 'original_path', 'local_path'):

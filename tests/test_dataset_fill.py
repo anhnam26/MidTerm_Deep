@@ -122,3 +122,10 @@ def test_development_source_never_downloaded(tmp_path):
         raise AssertionError('Development source must not be downloaded')
     result = fill.stage([dict(candidate(), development_only=True)], fill.ScreeningIndex(), tmp_path, fetch)
     assert result[0]['status'] == 'reserved_source_or_group'
+
+
+@pytest.mark.parametrize('field,collection', [
+    ('source_identity', 'source_identities'), ('dataset_ref', 'dataset_refs')])
+def test_dataset_wide_and_alias_reservations(field, collection):
+    row = dict(candidate(), **{field: 'holdout'})
+    assert fill.ScreeningIndex(reserved={collection: {'holdout'}}).is_reserved(row)
