@@ -1,0 +1,14 @@
+{
+  "size": 224,
+  "epochs": 150,
+  "batch_size": 64,
+  "lr": 0.05,
+  "momentum": 0.9,
+  "weight_decay": 0.0005,
+  "warmup": 5,
+  "label_smoothing": 0.05,
+  "dropout": 0.2,
+  "seed": 2026,
+  "workers": 0,
+  "output": "D:/DeepLearning/MidTerm/outputs/dev224_seed2026"
+}

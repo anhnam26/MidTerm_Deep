@@ -1,0 +1,8 @@
+plan_action/
+data/
+outputs/
+__pycache__/
+.pytest_cache/
+*.pyc
+.env
+DataNew/
