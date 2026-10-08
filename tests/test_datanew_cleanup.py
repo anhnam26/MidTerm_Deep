@@ -90,3 +90,24 @@ def test_insufficiently_reviewed_sources_cannot_fill_quota(field, reason):
 def test_reserved_aliases_are_excluded(field, plural):
     row = {'id': 'new', field: 'blocked'}
     assert clean.eligibility_reason(row, set(), {plural: {'blocked'}}) == 'reserved_source_or_group'
+
+
+def test_promote_rejects_failed_gate_before_touching_dataset(tmp_path):
+    import json
+    work = tmp_path / 'work'
+    work.mkdir()
+    (tmp_path / 'DataNew').mkdir()
+    (tmp_path / 'DataNew/keep').write_text('original', encoding='utf-8')
+    (work / 'baseline.json').write_text('{}', encoding='utf-8')
+    report = {'capacity_pass': False, 'augmented': 0,
+              'duplicate_groups_by_hash_kind': 0, 'status': 'prepared_not_promoted'}
+    (work / 'report.json').write_text(json.dumps(report), encoding='utf-8')
+    with pytest.raises(ValueError, match='gate'):
+        clean.promote(tmp_path, work)
+    assert (tmp_path / 'DataNew/keep').read_text(encoding='utf-8') == 'original'
+
+
+def test_development_source_excluded_even_if_user_approved():
+    row = {'id': 'new', 'development_only': True, 'photo_verified': True,
+           'rights_verified': True, 'physical_groups_verified': True}
+    assert clean.eligibility_reason(row, {'new'}, {}) == 'development_only'
