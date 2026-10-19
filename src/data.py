@@ -539,6 +539,12 @@ def validate_dataset(rows, dataset_root):
 
 
 def audit():
+    settings_path = META / "build_settings.json"
+    if settings_path.exists():
+        settings = json.loads(settings_path.read_text(encoding="utf-8"))
+        if settings.get("layout") == "paired-compressed-v1":
+            from .input_dataset import audit as audit_inputs
+            return audit_inputs(ROOT)
     report = validate_dataset(read_csv(META / "splits.csv"), DATA)
     write_json(META / "audit.json", report)
     print(json.dumps(report, indent=2))

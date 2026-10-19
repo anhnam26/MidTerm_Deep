@@ -66,7 +66,11 @@ class ManifestDataset(Dataset):
 
     def __getitem__(self, index):
         row = self.rows[index]
-        path = ROOT / "data" / f"Mid{self.size}" / row["split"] / row["class"] / f"{row['id']}.png"
+        if row.get(f"mid{self.size}_path"):
+            from .input_dataset import image_path
+            path = image_path(ROOT, row, self.size)
+        else:
+            path = ROOT / "data" / f"Mid{self.size}" / row["split"] / row["class"] / f"{row['id']}.png"
         with Image.open(path) as image:
             if image.mode != "RGB" or image.size != (self.size, self.size):
                 raise ValueError(f"Wrong dataset image: {path}")
