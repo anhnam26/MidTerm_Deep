@@ -1,0 +1,37 @@
+{
+  "layout": "paired-compressed-v1",
+  "structural_pass": true,
+  "identities": 25250,
+  "capture_groups": 211,
+  "counts": {
+    "train": {
+      "apple": 5000,
+      "banana": 5000,
+      "orange": 5000,
+      "strawberry": 5000,
+      "pineapple": 5000
+    },
+    "test": {
+      "apple": 50,
+      "banana": 50,
+      "orange": 50,
+      "strawberry": 50,
+      "pineapple": 50
+    }
+  },
+  "review_scope": "Technical validation; source and visual-review evidence is recorded separately.",
+  "Mid224": {
+    "images": 25250,
+    "total_bytes": 23148133,
+    "total_mb": 23.148133,
+    "limit_bytes": 25000000,
+    "capacity_pass": true
+  },
+  "Mid32": {
+    "images": 25250,
+    "total_bytes": 14948274,
+    "total_mb": 14.948274,
+    "limit_bytes": 20000000,
+    "capacity_pass": true
+  }
+}

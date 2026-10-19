@@ -1,83 +1,49 @@
-# Kiểm tra yêu cầu giữa kỳ — 19/10/2026
+# Kiểm tra yêu cầu giữa kỳ — 20/10/2026
 
-**Có dữ liệu, nhưng chưa đủ điều kiện để chốt bài nộp.** Đối chiếu trực tiếp với
-[đề gốc](../Midterm%20exam.docx); số liệu kiểm tra máy nằm trong
-[dataset_audit.json](dataset_audit.json), danh sách ảnh trong
-[dataset_manifest.csv](dataset_manifest.csv).
+Đề yêu cầu ít nhất 5 lớp, khoảng 5.000 train + 50 test/lớp, hai bộ 224×224 và
+32×32, dung lượng tối đa 25 MB và 20 MB, mô hình không quá 6M tham số và dưới 1G
+FLOPs.
 
-## Số lượng thực tế
+## Kết quả kỹ thuật cuối
 
-Hai bộ nằm ở `DataNew/Mid224` và `DataNew/Mid32`, dùng chung **22.303 ảnh định danh**
-mỗi bộ: **22.053 train + 250 test**, tổng cộng **44.606 file ảnh**.
+| Lớp | Train | Test |
+|---|---:|---:|
+| apple | 5.000 | 50 |
+| banana | 5.000 | 50 |
+| orange | 5.000 | 50 |
+| strawberry | 5.000 | 50 |
+| pineapple | 5.000 | 50 |
+| **Tổng mỗi bộ** | **25.000** | **250** |
 
-| Lớp | Train hiện có | Test hiện có | Thiếu so với 5.000 train |
-|---|---:|---:|---:|
-| apple | 5.000 | 50 | 0 |
-| banana | 4.480 | 50 | 520 |
-| orange | 5.000 | 50 | 0 |
-| strawberry | 4.888 | 50 | 112 |
-| pineapple | 2.685 | 50 | 2.315 |
-| **Tổng** | **22.053** | **250** | **2.947** |
+- Mid224: **25.250 file AVIF RGB 224×224**, 23.148.133 byte = 23,148133 MB,
+  dưới 25.000.000 byte.
+- Mid32: **25.250 file WebP RGB 32×32**, 14.948.274 byte = 14,948274 MB,
+  dưới 20.000.000 byte.
+- Audit đã giải mã toàn bộ 50.500 file, kiểm tra hash manifest, file dư/thiếu,
+  cặp hai độ phân giải, trùng encoded/pixel và giao nhóm train/test.
+- FruitLite-L: 408.179 learnable parameters; 587.091.697 FLOPs ở 224 và
+  12.099.313 FLOPs ở 32. Đạt giới hạn mô hình theo profiler hiện có.
 
-Đề ghi **“about 5000”**, không bắt buộc chính xác 5.000 hoặc một tỷ lệ validation
-cụ thể. Mốc 5.000 được dùng để lượng hóa phần thiếu; pineapple chỉ đạt 53,7% mốc
-này, nên chưa thể kết luận đạt yêu cầu số lượng. Hai bộ có cùng định danh và split;
-không cộng số ảnh của hai độ phân giải thành số mẫu độc lập.
+## Nguồn bổ sung
 
-## Đối chiếu từng yêu cầu
+Để bù phần thiếu cũ, bộ kỹ thuật thêm 2.947 ảnh train: 520 banana từ
+`luischuquim/BananaRipeness`, 112 strawberry gốc từ Zenodo
+`10.5281/zenodo.20415464`, và 2.315 pineapple từ PQC500 của `ncyuMARSLab`.
+Các ảnh được resize trực tiếp từ ảnh gốc, không dùng augmentation để tăng quota.
+Mỗi nguồn được giữ `source_identity`, URL, author, group ID và hash trong
+[final_input_manifest.csv](final_input_manifest.csv).
 
-| Yêu cầu trong đề | Kết quả kiểm tra | Đánh giá |
-|---|---|---|
-| Ít nhất 5 lớp | apple, banana, orange, strawberry, pineapple | Đạt số lớp |
-| Khoảng 5.000 train/lớp | Bảng trên; thiếu nhiều nhất ở pineapple | Chưa đạt mục tiêu |
-| 50 test/lớp | Đủ 50 × 5 ở cả hai bộ | Đạt số lượng |
-| Mid224 đúng 224×224 | Giải mã toàn bộ 22.303 ảnh AVIF, RGB, một frame | Đạt kỹ thuật |
-| Mid32 đúng 32×32 | Giải mã toàn bộ 22.303 ảnh WebP, RGB, một frame | Đạt kỹ thuật |
-| Mid224 không quá 25M | 20.425.389 byte = 20,425389 MB | Đạt dung lượng |
-| Mid32 không quá 20M | 13.071.104 byte = 13,071104 MB | Đạt dung lượng |
-| L không quá 6M learnable parameters | FruitLite-L: 408.179 | Đạt theo mã hiện có |
-| L dưới 1G FLOPs | 587.091.697 ở 224; 12.099.313 ở 32 | Đạt theo quy ước profiler |
-| Train và test L trên cả hai bộ | Chưa có kết quả chính thức; chỉ có bằng chứng smoke/pilot cũ | Chưa đạt |
-| Báo cáo settings, Top-1 và từng epoch | Có cấu hình khởi đầu, chưa có số liệu huấn luyện thật | Chưa đạt |
-| Báo cáo cuối dạng PDF | Chưa có PDF cuối | Chưa đạt |
-| Kiến trúc không giống hệt mạng có sẵn; không trùng nhóm khác | Có CNN tự ghép; chưa có đối chiếu với nhóm khác | Chưa xác minh đầy đủ |
+## Các điều kiện còn phải hoàn tất trước khi nộp
 
-Dung lượng tính theo file ảnh bên trong từng thư mục Mid224/Mid32, không phải ZIP,
-không cộng dữ liệu nguồn hoặc metadata nằm ngoài hai bộ. Dùng ngưỡng bảo thủ
-**1 MB = 1.000.000 byte**; đề không chỉ rõ định dạng PNG/JPEG/AVIF/WebP.
-FLOPs dùng `2 × MACs + scalar operations` theo `src/profile.py`, batch 1,
-inference; không phải thời gian chạy hoặc phép đo phần cứng.
+Audit kỹ thuật không đồng nghĩa dữ liệu đã đạt chất lượng khoa học/pháp lý cuối:
 
-## Chất lượng và tính độc lập
+- Banana và PQC500 chưa có SPDX license xác nhận trong metadata hiện có; manifest
+  đặt `rights_verified=false`.
+- Nguồn bổ sung chưa được duyệt thủ công toàn bộ nhãn và chất lượng; manifest đặt
+  `photo_verified=false`.
+- Cờ near-duplicate và tính độc lập vật thể của bộ legacy chưa được review hết.
+- Chưa có training/test chính thức, log từng epoch, Top-1, confusion matrix và PDF.
+- Chưa đối chiếu kiến trúc/dataset với các nhóm khác.
 
-- Kiểm tra toàn bộ file: không thiếu/thừa so với manifest, đúng cặp hai độ phân
-  giải, không có nhóm trùng byte hoặc trùng pixel giải mã trong từng bộ.
-- Tất cả ảnh giữ nguyên hash so với inventory sau lần bổ sung gần nhất. Manifest
-  hiện chỉ có `type=real`; đây là nhãn metadata, không tự chứng minh mọi ảnh đều là
-  mẫu chụp độc lập.
-- Hồ sơ trước đó ghi **16.000 định danh có cờ tương đồng dHash chưa giải quyết**.
-  Đây là nghi vấn cần duyệt nội dung và nhóm nguồn, **không phải 16.000 ảnh đã được
-  chứng minh trùng**. Kiểm tra trùng byte/pixel không loại trừ crop, đổi góc hoặc
-  cùng quả xuất hiện ở cả train và test.
-- [Ảnh mẫu kiểm tra](dataset_preview.jpg) lấy seed 42: 6 train + 2 test/lớp,
-  hiển thị Mid224 cạnh Mid32. Việc xem 40 mẫu không thay thế duyệt toàn bộ nhãn,
-  quyền sử dụng, nhóm cùng vật thể và chất lượng nén. Mid224 được nén rất mạnh;
-  dung lượng đạt không chứng minh giữ đủ thông tin để phân loại.
-- Mẫu banana có đối tượng đỏ khó xác định, ảnh món ăn và bối cảnh bàn/đồ uống
-  (`banana_train_real_03457`, `00261`, `00768`). Cần thống nhất tiêu chí nhìn thấy
-  trái cây và duyệt lại; chưa tự gán lại nhãn hoặc xóa những ảnh này.
-- Hồ sơ nguồn hiện vẫn đánh dấu kiểm duyệt ngữ nghĩa/quyền sử dụng và nhóm vật thể
-  chưa hoàn tất. Giữ nguyên các trạng thái đó, không suy diễn thành đã đạt.
-
-## Trở ngại trước khi huấn luyện
-
-`src/train.py` hiện đọc `data/metadata/splits.csv` và ảnh PNG trong
-`data/Mid224` / `data/Mid32`. Các đường dẫn chính thức này chưa có. Dữ liệu thực tế
-lại dùng `results/dataset_manifest.csv`, AVIF/WebP và nằm trong `DataNew`.
-Vì vậy chạy config hiện tại chưa thể train trực tiếp trên bộ đang có.
-
-Để hoàn tất bài: bổ sung ảnh thật phù hợp cho ba lớp còn thiếu, duyệt nhãn và nhóm
-nguồn để tránh rò rỉ train/test, xác nhận bộ dữ liệu/kiến trúc không trùng nhóm
-khác, rồi thống nhất loader và split. Sau đó mới train/test hai độ phân giải,
-lưu log từng epoch và làm PDF. Việc kiểm tra và dọn project này chưa thực hiện
-thu thập bổ sung hoặc huấn luyện.
+Trạng thái chính xác hiện tại là **technical_quota_complete_rights_and_full_visual_review_pending**.
+Không dùng số liệu smoke, CLIP screening hoặc proxy score làm accuracy chính thức.
