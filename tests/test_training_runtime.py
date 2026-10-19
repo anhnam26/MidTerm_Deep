@@ -71,11 +71,25 @@ def test_partial_epoch_is_not_checkpointed_and_resume_matches_uninterrupted(tmp_
     assert first["epoch"] == 1 and len(first["history"]) == 1
     monkeypatch.setattr(runtime, "run_epoch", original)
     runtime.train_job(config(), interrupted, data, data, {"fixture": True})
+    resumed_output = capsys.readouterr().out
+    assert "RESUME" in resumed_output and "epoch=1 -> next_epoch=2" in resumed_output
+    assert "EPOCH 1/2" not in resumed_output and "EPOCH 2/2" in resumed_output
     runtime.train_job(config(), tmp_path / "reference", data, data, {"fixture": True})
     resumed = torch.load(interrupted / "last.pt", weights_only=True)
     reference = torch.load(tmp_path / "reference" / "last.pt", weights_only=True)
     assert all(torch.equal(v, reference["model"][k]) for k, v in resumed["model"].items())
     assert len(read_csv(interrupted / "epochs.csv")) == 2
+
+
+def test_missing_last_cannot_silently_restart_a_completed_run(tmp_path):
+    data = tiny_data()
+    runtime.train_job(config(), tmp_path, data, data, {"fixture": True})
+    best = (tmp_path / 'best.pt').read_bytes()
+    (tmp_path / 'last.pt').unlink()
+    with pytest.raises(ValueError, match='Missing last.pt'):
+        runtime.train_job(config(), tmp_path, data, data, {"fixture": True})
+    assert not (tmp_path / 'last.pt').exists()
+    assert (tmp_path / 'best.pt').read_bytes() == best
 
 
 def test_resume_refuses_changed_settings_or_provenance(tmp_path):

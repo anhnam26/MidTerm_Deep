@@ -12,7 +12,7 @@ import torch
 from torchvision import transforms
 
 from .common import CLASSES, ROOT, read_csv, write_csv, write_json
-from .input_dataset import validate
+from .input_audit_cache import validate_inputs
 from .model import FruitLite
 from .profile import profile
 from .train import ManifestDataset, loader, seed_all
@@ -128,7 +128,7 @@ def evaluate_locked(final_folder, test_data, config):
 
 def run_pipeline(root=ROOT, run_name="fruitlite_l2_seed2026", sizes=(224, 32),
                  epochs=None, batch_size=None, workers=None, device=None,
-                 validation_fraction=.1, check_only=False):
+                 validation_fraction=.1, check_only=False, full_audit=False):
     root = Path(root).resolve()
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,63}", run_name):
         raise ValueError("Invalid run name: use letters, digits, underscore or hyphen")
@@ -136,10 +136,10 @@ def run_pipeline(root=ROOT, run_name="fruitlite_l2_seed2026", sizes=(224, 32),
         raise ValueError("Select Mid224 and/or Mid32 once")
     folder = root / "outputs" / run_name
     with exclusive_run(folder / ".pipeline.lock"):
-        return _run_pipeline(root, folder, sizes, epochs, batch_size, workers, device, validation_fraction, check_only)
+        return _run_pipeline(root, folder, sizes, epochs, batch_size, workers, device, validation_fraction, check_only, full_audit)
 
 
-def _run_pipeline(root, folder, sizes, epochs, batch_size, workers, device, fraction, check_only):
+def _run_pipeline(root, folder, sizes, epochs, batch_size, workers, device, fraction, check_only, full_audit):
     configs = {}
     for size in sizes:
         path = root / f"configs/mid{size}.json"
@@ -175,9 +175,14 @@ def _run_pipeline(root, folder, sizes, epochs, batch_size, workers, device, frac
         raise ValueError("Workflow settings, code or manifest changed; use a new --run-name")
     write_json(plan_path, {"identity": plan_identity, **plan})
     write_csv(folder / "development_split.csv", assignments)
-    print(f"OUTPUT: {folder}\nINPUT AUDIT: verifying all paired images before training...", flush=True)
-    report = validate(root, rows)
-    write_json(folder / "input_validation.json", report)
+    print(f"OUTPUT: {folder}\nINPUT CHECK: reusing a decoded audit when valid; verifying image hashes...", flush=True)
+    cache_path = root / 'data/metadata/input_audit_cache.json'
+    with exclusive_run(cache_path.with_suffix('.lock')):
+        report, reused = validate_inputs(root, rows, cache_path, force_full=full_audit)
+    write_json(folder / "input_validation.json", {**report, 'cached_decoded_audit_reused': reused,
+               'current_verification': 'inventory_and_all_encoded_sha256' if reused else 'full_decode_and_sha256'})
+    print('INPUT CHECK PASSED: all image hashes match; decoded audit reused.' if reused else
+          'INPUT AUDIT PASSED: full decoded audit cached for the next restart.', flush=True)
     if hashlib.sha256(manifest_path.read_bytes()).hexdigest() != manifest_sha:
         raise ValueError("Manifest changed during validation")
     print(f"PARTITION train={len(train_rows)} val={len(val_rows)} test_reserved={partition['test_reserved']}", flush=True)

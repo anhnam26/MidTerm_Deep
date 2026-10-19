@@ -34,6 +34,7 @@ def main(argv=None):
     parser.add_argument("--device", choices=("auto", "cuda", "cpu"))
     parser.add_argument("--threads", type=int, default=4)
     parser.add_argument("--check", action="store_true", help="Audit, profile and check real loaders without training")
+    parser.add_argument("--full-audit", action="store_true", help="Force a full decoded image audit instead of reusing the valid cache")
     args = parser.parse_args(argv)
     if args.threads < 1:
         parser.error("threads must be positive")
@@ -47,7 +48,8 @@ def main(argv=None):
     from src.training_pipeline import run_pipeline
     try:
         run_pipeline(run_name=args.run_name, sizes=tuple(args.sizes), epochs=args.epochs,
-                     batch_size=args.batch_size, workers=args.workers, device=args.device, check_only=args.check)
+                     batch_size=args.batch_size, workers=args.workers, device=args.device, check_only=args.check,
+                     full_audit=args.full_audit)
     except KeyboardInterrupt:
         print("\nStopped. Run train.py again to resume from the last completed epoch.", flush=True)
         return 130

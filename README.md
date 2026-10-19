@@ -35,7 +35,19 @@ lại test đó như một phép đánh giá độc lập.
 
 **Dừng và tiếp tục:** nhấn Ctrl+C; chạy lại chính `train.py`. Chương trình phục hồi
 model, optimizer, AMP scaler, EMA, RNG và lịch sử từ epoch hoàn tất gần nhất.
-Epoch đang dang dở chạy lại. Nếu đổi mã nguồn/cấu hình/data, dùng tên lượt mới:
+Màn hình ghi rõ `RESUME ... epoch=10 -> next_epoch=11`. Chỉ epoch đang dang dở
+chạy lại; các epoch đã hoàn tất không train lại. Checkpoint đầu tiên có sau
+epoch 1; nếu dừng trước đó thì chưa có trạng thái để resume. Nếu mất `last.pt`
+nhưng còn lịch sử/checkpoint của lượt cũ, chương trình báo lỗi để tránh tự train
+lại từ đầu.
+
+Audit giải mã đầy đủ chỉ chạy khi chưa có cache hợp lệ. Những lần sau kiểm tra
+inventory và SHA256 **tất cả file ảnh**, rồi dùng lại audit đã lưu nếu ảnh,
+manifest và quy tắc kiểm tra giữ nguyên. Không chỉ dựa vào timestamp/kích thước,
+không giải mã lại 50.500 ảnh. Lần đầu sau bản cập nhật này cần tạo cache một lần.
+Muốn ép audit đầy đủ: thêm `--full-audit`.
+
+Nếu đổi mã nguồn/cấu hình/data, dùng tên lượt mới:
 
 ```powershell
 & 'C:\Users\anhna\AppData\Local\Microsoft\WindowsApps\python3.13.exe' -X utf8 -B train.py --run-name experiment_02

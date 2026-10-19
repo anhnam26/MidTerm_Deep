@@ -7,7 +7,7 @@ import pytest
 from PIL import Image
 import torch
 
-from src import input_dataset, training_pipeline as pipeline
+from src import input_dataset, training_pipeline as pipeline, training_runtime as runtime
 from src.common import CLASSES, read_csv, write_csv, write_json
 from src.training_runtime import TrainConfig
 
@@ -86,3 +86,58 @@ def test_check_only_audits_and_loads_without_creating_checkpoints(tmp_path, monk
 def test_output_name_cannot_escape_project(tmp_path):
     with pytest.raises(ValueError, match="run name"):
         pipeline.run_pipeline(root=tmp_path, run_name="../outside")
+
+
+def test_pipeline_restart_resumes_last_epoch_without_decoded_audit(tmp_path, monkeypatch, capsys):
+    paired_fixture(tmp_path)
+    monkeypatch.setattr(input_dataset, "SPLIT_QUOTAS", {"train": 10, "test": 2})
+    original_epoch = runtime.run_epoch
+    calls = []
+
+    def interrupt_second_validation(*args, **kwargs):
+        if kwargs['phase'] == 'val' and kwargs['epoch'] == 2:
+            raise KeyboardInterrupt('simulated stop')
+        return original_epoch(*args, **kwargs)
+
+    monkeypatch.setattr(runtime, 'run_epoch', interrupt_second_validation)
+    with pytest.raises(KeyboardInterrupt):
+        pipeline.run_pipeline(root=tmp_path, run_name='resume', sizes=(32,), validation_fraction=.2)
+    folder = tmp_path / 'outputs/resume'
+    checkpoint = folder / 'Mid32/development/last.pt'
+    assert torch.load(checkpoint, weights_only=True)['epoch'] == 1
+    capsys.readouterr()
+
+    def track_epochs(*args, **kwargs):
+        if kwargs['phase'] == 'train':
+            calls.append(kwargs['epoch'])
+        return original_epoch(*args, **kwargs)
+
+    def no_full_audit(*args, **kwargs):
+        pytest.fail('Resuming unchanged input must reuse the full decoded audit')
+
+    monkeypatch.setattr(runtime, 'run_epoch', track_epochs)
+    monkeypatch.setattr(input_dataset, 'validate', no_full_audit)
+    result = pipeline.run_pipeline(root=tmp_path, run_name='resume', sizes=(32,), validation_fraction=.2)
+    assert result['status'] == 'completed'
+    assert calls[0] == 2
+    assert len(read_csv(folder / 'Mid32/development/epochs.csv')) == 2
+    assert torch.load(checkpoint, weights_only=True)['epoch'] == 2
+    output = capsys.readouterr().out
+    assert 'RESUME' in output and 'epoch=1 -> next_epoch=2' in output
+    assert json.loads((folder / 'input_validation.json').read_text())['cached_decoded_audit_reused']
+
+
+def test_explicit_full_audit_forces_decode_even_with_cached_preflight(tmp_path, monkeypatch):
+    paired_fixture(tmp_path)
+    monkeypatch.setattr(input_dataset, 'SPLIT_QUOTAS', {'train': 10, 'test': 2})
+    pipeline.run_pipeline(root=tmp_path, run_name='force', check_only=True)
+    original_validate = input_dataset.validate
+    audits = []
+
+    def track_audit(*args, **kwargs):
+        audits.append(1)
+        return original_validate(*args, **kwargs)
+
+    monkeypatch.setattr(input_dataset, 'validate', track_audit)
+    pipeline.run_pipeline(root=tmp_path, run_name='force', check_only=True, full_audit=True)
+    assert len(audits) == 1

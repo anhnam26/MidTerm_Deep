@@ -59,7 +59,7 @@ class TrainConfig:
 def source_digest():
     digest = hashlib.sha256()
     for name in ("model.py", "profile.py", "common.py", "train.py", "training_data.py",
-                 "input_dataset.py", "training_runtime.py", "training_pipeline.py"):
+                 "input_dataset.py", "input_audit_cache.py", "training_runtime.py", "training_pipeline.py"):
         path = Path(__file__).with_name(name)
         if path.exists():
             digest.update(name.encode())
@@ -335,6 +335,9 @@ def train_job(config, folder, train_data, validation, provenance, selection_kind
 
 
 def _train_job(config, folder, train_data, validation, provenance, selection_kind):
+    if not (folder / 'last.pt').exists() and any((folder / name).exists() for name in
+            ('best.pt', 'epochs.csv', 'epochs.json', 'summary.json')):
+        raise ValueError('Missing last.pt in an existing training run; restore the checkpoint instead of restarting')
     device = torch.device("cuda" if config.device == "auto" and torch.cuda.is_available() else
                           "cpu" if config.device == "auto" else config.device)
     if device.type == "cuda" and not torch.cuda.is_available():
@@ -402,8 +405,13 @@ def _train_job(config, folder, train_data, validation, provenance, selection_kin
     best_validation = state["best_validation"] if state else None
     updates = state["ema_updates"] if state else 0
     committed_epoch = start_epoch
-    log.say(f"START Mid{config.size} device={device} train={len(train_data)} val={len(validation) if validation is not None else 0} "
-            f"epochs={config.epochs} resume_after={start_epoch} output={folder}")
+    if state is not None:
+        log.say(f"RESUME Mid{config.size}/{provenance.get('purpose', folder.name)} from {folder / 'last.pt'}; "
+                f"epoch={start_epoch} -> next_epoch={start_epoch + 1}; "
+                "model/optimizer/AMP/EMA/RNG/history restored")
+    else:
+        log.say(f"START Mid{config.size} device={device} train={len(train_data)} val={len(validation) if validation is not None else 0} "
+                f"epochs={config.epochs} no checkpoint yet; first epoch=1 output={folder}")
     log.say(f"FruitLite-L2 params={properties[str(config.size)]['learnable_parameters']:,} "
             f"FLOPs={properties[str(config.size)]['flops']:,}; best selection={'validation top1, then loss' if validation is not None else 'fixed final epoch'}", terminal=False)
     log.say("CONFIG " + json.dumps(asdict(config), sort_keys=True), terminal=False)
