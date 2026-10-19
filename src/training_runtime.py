@@ -124,9 +124,10 @@ class RunLog:
         self.batches = (folder / "batches.jsonl").open("a", encoding="utf-8", buffering=1)
         self.attempt = datetime.now(timezone.utc).isoformat()
 
-    def say(self, message):
+    def say(self, message, *, terminal=True):
         line = f"[{datetime.now().astimezone().strftime('%H:%M:%S')}] {message}"
-        print(line, flush=True)
+        if terminal:
+            print(line, flush=True)
         self.console.write(line + "\n")
 
     def batch(self, entry):
@@ -240,7 +241,7 @@ def run_epoch(model, data_loader, device, config, log, *, epoch, phase,
                     scaler.update(new_scale=previous_scale / 2)
                     grad_norm = None
                     skipped += 1
-                    log.say(f"AMP gradient overflow: skipped update; scale {previous_scale:g} -> {scaler.get_scale():g}")
+                    log.say(f"AMP gradient overflow: skipped update; scale {previous_scale:g} -> {scaler.get_scale():g}", terminal=False)
                 else:
                     grad_sum += grad_norm
                     grad_max = max(grad_max, grad_norm)
@@ -273,7 +274,7 @@ def run_epoch(model, data_loader, device, config, log, *, epoch, phase,
                 eta = seconds / batch_index * (len(data_loader) - batch_index)
                 log.say(f"{phase:7s} epoch={epoch} batch={batch_index}/{len(data_loader)} "
                         f"loss={loss_sum / samples:.4f} acc={correct / samples:.2%} "
-                        f"speed={samples / seconds:.1f} img/s ETA={eta / 60:.1f}m")
+                        f"speed={samples / seconds:.1f} img/s ETA={eta / 60:.1f}m", terminal=False)
     if not samples:
         raise ValueError("Empty data loader")
     if device.type == "cuda":
@@ -288,11 +289,11 @@ def run_epoch(model, data_loader, device, config, log, *, epoch, phase,
                     "peak_reserved_mib": torch.cuda.max_memory_reserved() / 2**20 if device.type == "cuda" else 0})
     log.say(f"{phase} completed loss={metrics['loss']:.4f} top1={metrics['accuracy']:.2%} "
             f"precision={metrics['macro_precision']:.4f} recall={metrics['macro_recall']:.4f} "
-            f"F1={metrics['macro_f1']:.4f} GPU_peak={metrics['peak_allocated_mib']:.0f} MiB")
+            f"F1={metrics['macro_f1']:.4f} GPU_peak={metrics['peak_allocated_mib']:.0f} MiB", terminal=False)
     if not training:
         for fruit, item in metrics["per_class"].items():
             log.say(f"  {fruit:10s} P={item['precision']:.4f} R={item['recall']:.4f} "
-                    f"F1={item['f1-score']:.4f} samples={item['support']:.0f}")
+                    f"F1={item['f1-score']:.4f} samples={item['support']:.0f}", terminal=False)
     return metrics, {"labels": labels, "probabilities": probabilities}, ema_updates
 
 
@@ -404,8 +405,8 @@ def _train_job(config, folder, train_data, validation, provenance, selection_kin
     log.say(f"START Mid{config.size} device={device} train={len(train_data)} val={len(validation) if validation is not None else 0} "
             f"epochs={config.epochs} resume_after={start_epoch} output={folder}")
     log.say(f"FruitLite-L2 params={properties[str(config.size)]['learnable_parameters']:,} "
-            f"FLOPs={properties[str(config.size)]['flops']:,}; best selection={'validation top1, then loss' if validation is not None else 'fixed final epoch'}")
-    log.say("CONFIG " + json.dumps(asdict(config), sort_keys=True))
+            f"FLOPs={properties[str(config.size)]['flops']:,}; best selection={'validation top1, then loss' if validation is not None else 'fixed final epoch'}", terminal=False)
+    log.say("CONFIG " + json.dumps(asdict(config), sort_keys=True), terminal=False)
     try:
         for epoch_index in range(start_epoch, config.epochs):
             # Fresh workers and epoch-specific RNG make interrupted epochs replayable.
@@ -444,8 +445,8 @@ def _train_job(config, folder, train_data, validation, provenance, selection_kin
             atomic_save(checkpoint, folder / "last.pt")
             committed_epoch = epoch_index + 1
             summary = export_epoch_files(folder, checkpoint)
-            val_text = f" val={raw_val['accuracy']:.2%} ema_val={ema_val['accuracy']:.2%} best={best_validation['accuracy']:.2%}@{best_epoch}" if raw_val else " fixed-final-epoch selection"
-            log.say(f"EPOCH {epoch_index + 1}/{config.epochs} lr={lr:.7f} train_loss={train_metrics['loss']:.4f} "
+            val_text = f" val_loss={raw_val['loss']:.4f} val={raw_val['accuracy']:.2%} ema_val={ema_val['accuracy']:.2%} best={best_validation['accuracy']:.2%}@{best_epoch}" if raw_val else " fixed-final-epoch selection"
+            log.say(f"Mid{config.size}/{provenance.get('purpose', folder.name)} EPOCH {epoch_index + 1}/{config.epochs} lr={lr:.7f} train_loss={train_metrics['loss']:.4f} "
                     f"train_acc={train_metrics['accuracy']:.2%}{val_text} seconds={entry['epoch_seconds']:.1f}; last.pt/best.pt saved")
         return summary
     except BaseException as exc:

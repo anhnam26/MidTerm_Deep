@@ -55,6 +55,10 @@ khởi động trên Windows; worker train khởi tạo theo seed của mỗi ep
 
 ## Checkpoint và log
 
+Màn hình chỉ hiện **một dòng tổng kết sau mỗi epoch hoàn tất**: loss, train/
+validation/EMA accuracy, best accuracy, LR và thời gian. Thông báo khởi động,
+dừng/lỗi và kết quả test vẫn hiện; chi tiết batch và từng lớp chỉ ghi trong file.
+
 Kết quả mặc định nằm trong `outputs/fruitlite_l2_seed2026/`, ngoài Git.
 Mỗi `Mid224` / `Mid32` có hai thư mục `development` và `final`:
 
@@ -63,7 +67,7 @@ Mỗi `Mid224` / `Mid32` có hai thư mục `development` và `final`:
 | `last.pt` | Ghi thay thế sau mỗi epoch train + validation hoàn tất; đủ trạng thái resume |
 | `best.pt` | Một file cố định chứa trọng số được chọn, không tạo file checkpoint theo số epoch |
 | `settings.json` | Toàn bộ hyperparameter, kiến trúc, profile, môi trường, seed, hash code/data/split |
-| `console.log` | Log màn hình: batch, ETA, tốc độ, loss, accuracy, P/R/F1 từng lớp, tóm tắt epoch |
+| `console.log` | Log đầy đủ: batch, ETA, tốc độ, loss, accuracy, P/R/F1 từng lớp và các dòng tổng kết màn hình |
 | `batches.jsonl` | Mỗi batch: loss, running accuracy, LR, gradient norm, AMP scale, mixup, timing, attempt |
 | `epochs.csv`, `epochs.json` | Mọi epoch hoàn tất: train/val/EMA loss và Top-1, precision/recall/F1, AUROC, ECE, Brier, confusion matrix, GPU memory, timing |
 | `learning_curves.png` | Đường loss và accuracy sau khi xong mỗi giai đoạn |

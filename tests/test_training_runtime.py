@@ -37,14 +37,20 @@ def test_completed_epochs_overwrite_two_checkpoints_and_export_metrics(tmp_path,
     assert len(metrics[0]["val"]["confusion_matrix"]) == 5
     assert len(metrics[0]["val"]["per_class"]) == 5
     assert len((tmp_path / "batches.jsonl").read_text().splitlines()) >= 4
-    assert "EPOCH 2/2" in capsys.readouterr().out
-    assert (tmp_path / "console.log").read_text()
+    screen = capsys.readouterr().out
+    lines = screen.splitlines()
+    assert len([line for line in lines if "EPOCH " in line]) == 2
+    assert "EPOCH 2/2" in screen
+    assert "batch=" not in screen and " completed loss=" not in screen
+    assert "samples=" not in screen and "CONFIG " not in screen
+    details = (tmp_path / "console.log").read_text()
+    assert "batch=" in details and "samples=" in details
     before = (tmp_path / "last.pt").read_bytes()
     runtime.train_job(config(), tmp_path, data, data, {"fixture": True})
     assert (tmp_path / "last.pt").read_bytes() == before
 
 
-def test_partial_epoch_is_not_checkpointed_and_resume_matches_uninterrupted(tmp_path, monkeypatch):
+def test_partial_epoch_is_not_checkpointed_and_resume_matches_uninterrupted(tmp_path, monkeypatch, capsys):
     data = tiny_data()
     interrupted = tmp_path / "resumed"
     original = runtime.run_epoch
@@ -57,6 +63,10 @@ def test_partial_epoch_is_not_checkpointed_and_resume_matches_uninterrupted(tmp_
     monkeypatch.setattr(runtime, "run_epoch", fail_in_second_validation)
     with pytest.raises(KeyboardInterrupt):
         runtime.train_job(config(), interrupted, data, data, {"fixture": True})
+    interrupted_output = capsys.readouterr().out
+    assert interrupted_output.count("EPOCH ") == 1
+    assert "EPOCH 2/2" not in interrupted_output
+    assert "batch=" not in interrupted_output
     first = torch.load(interrupted / "last.pt", weights_only=True)
     assert first["epoch"] == 1 and len(first["history"]) == 1
     monkeypatch.setattr(runtime, "run_epoch", original)
@@ -79,9 +89,11 @@ def test_resume_refuses_changed_settings_or_provenance(tmp_path):
     assert hashlib.sha256((tmp_path / "last.pt").read_bytes()).hexdigest() == digest
 
 
-def test_final_refit_checkpoint_selection_never_uses_training_accuracy(tmp_path):
+def test_final_refit_checkpoint_selection_never_uses_training_accuracy(tmp_path, capsys):
     data = tiny_data()
     runtime.train_job(config(), tmp_path, data, None, {"fixture": True}, selection_kind="ema")
+    screen = capsys.readouterr().out
+    assert screen.count("EPOCH ") == 2 and "batch=" not in screen
     last = torch.load(tmp_path / "last.pt", weights_only=True)
     assert last["best_epoch"] == 2
     assert last["selection_rule"] == "fixed_final_epoch"
