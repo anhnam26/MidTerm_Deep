@@ -1,7 +1,8 @@
 """Resumable real-photo dataset candidates; quantity first, never auto-accept.
 
-Uses cached public Kaggle inventories. Outputs are staging PNGs, NOT official
-Mid224/Mid32: production byte gates and review/split gates remain unchanged.
+Uses cached public Kaggle inventories in data/metadata/sources. Outputs are
+staging PNGs, NOT official Mid224/Mid32: production byte gates and review/split
+gates remain unchanged.
 """
 
 import argparse
@@ -62,7 +63,8 @@ def candidates():
     rows = []
     notices = []
     for phase, ref, fixed in SOURCES:
-        folder = ROOT / "plan_action" / (phase + "_source_metadata") / ref.replace("/", "__")
+        folder = (ROOT / "data" / "metadata" / "sources"
+                  / (phase + "_source_metadata") / ref.replace("/", "__"))
         state = json.loads((folder / "inventory.json").read_text(encoding="utf-8"))
         view = json.loads((folder / "view.json").read_text(encoding="utf-8"))
         if not state["complete"]:
