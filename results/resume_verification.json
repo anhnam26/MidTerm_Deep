@@ -1,0 +1,120 @@
+{
+  "status": "resume_and_cached_input_check_verified",
+  "date": "2026-10-20",
+  "entrypoint": "train.py",
+  "source_sha256": "bc299da40861b7b53327617b82ef198f9e96a1d6fc5044f8476085aadd25eaff",
+  "python_executable": "C:\\Users\\anhna\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\python.exe",
+  "base_environment_verified": true,
+  "full_suite": {
+    "passed": 182,
+    "failed": 0,
+    "seconds": 101.24,
+    "scope": "Same source SHA as this receipt; completed before final real-data cache creation",
+    "warnings": "530 upstream torchvision/Pillow deprecation warnings"
+  },
+  "process_restart_check": {
+    "purpose": "CPU_PROCESS_RESTART_INFRASTRUCTURE_NOT_OFFICIAL_ACCURACY",
+    "interrupted_after_completed_epoch": 1,
+    "resumed_at_epoch": 2,
+    "finished_epoch": 3,
+    "history_epochs": [
+      1,
+      2,
+      3
+    ],
+    "identical_to_continuous_run": {
+      "model": true,
+      "ema": true,
+      "optimizer": true,
+      "scaler": true,
+      "rng": true,
+      "epoch": true,
+      "ema_updates": true,
+      "best_weights": true,
+      "best_epoch": true
+    }
+  },
+  "input_cache": {
+    "path": "data/metadata/input_audit_cache.json",
+    "key": "d99dfcc003b95381978ef8c0370fcfe8e72625a81825e382aa88748f8ba64161",
+    "identities": 25250,
+    "image_files": 50500,
+    "full_audit_seconds": 558.4406577000045,
+    "manifest_sha256": "da500de7a5c9ff48314fe0048a6bef500fffb3303b189f6368805cdbbb922109",
+    "subsequent_entrypoint_reused_decoded_audit": true,
+    "subsequent_verification": "inventory_and_all_encoded_sha256",
+    "cache_policy": "Inventory and encoded SHA256 of every image; fail on changed bytes, missing or extra files. Full decode on cache/policy/manifest changes or --full-audit."
+  },
+  "preflight": {
+    "status": "preflight_passed",
+    "profile": {
+      "224": {
+        "size": 224,
+        "output_shape": [
+          1,
+          5
+        ],
+        "learnable_parameters": 1250879,
+        "macs": 413110080,
+        "other_scalar_ops": 34193577,
+        "flops": 860413737,
+        "eligible": true
+      },
+      "32": {
+        "size": 32,
+        "output_shape": [
+          1,
+          5
+        ],
+        "learnable_parameters": 1250879,
+        "macs": 8632128,
+        "other_scalar_ops": 708777,
+        "flops": 17973033,
+        "eligible": true
+      }
+    },
+    "loader": {
+      "224": {
+        "input_shape": [
+          2,
+          3,
+          224,
+          224
+        ],
+        "output_shape": [
+          2,
+          5
+        ],
+        "workers": 4
+      },
+      "32": {
+        "input_shape": [
+          2,
+          3,
+          32,
+          32
+        ],
+        "output_shape": [
+          2,
+          5
+        ],
+        "workers": 4
+      }
+    },
+    "versions": {
+      "torch": "2.7.1+cu118",
+      "torchvision": "0.22.1+cu118",
+      "Pillow": "11.3.0",
+      "numpy": "2.2.6",
+      "scikit-learn": "1.6.1",
+      "matplotlib": "3.10.5"
+    },
+    "python": "C:\\Users\\anhna\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\python.exe",
+    "cuda_available": true,
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU"
+  },
+  "resume_rule": "Load last.pt and restore model, optimizer, AMP scaler, EMA, RNG and epoch history. Replay only the interrupted epoch. Stop if a completed run lost last.pt.",
+  "first_checkpoint_after": "First completed train and validation epoch",
+  "main_run_checkpoints_at_verification": 0,
+  "benchmark_accuracy_claimed": false
+}
