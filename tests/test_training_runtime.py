@@ -126,3 +126,29 @@ def test_best_does_not_regress_when_validation_declines(tmp_path, monkeypatch):
     runtime.train_job(config(), tmp_path, data, data, {"fixture": True})
     assert torch.load(tmp_path / "last.pt", weights_only=True)["epoch"] == 2
     assert torch.load(tmp_path / "best.pt", weights_only=True)["epoch"] == 1
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA AMP overflow behavior")
+def test_amp_overflow_skips_one_update_and_recovers(tmp_path):
+    from copy import deepcopy
+    from torch.utils.data import DataLoader
+    model = torch.nn.Linear(3, 5).cuda()
+    ema = deepcopy(model).requires_grad_(False)
+    calls = []
+
+    def overflow_once(gradient):
+        calls.append(1)
+        return gradient * float("inf") if len(calls) == 1 else gradient
+
+    model.weight.register_hook(overflow_once)
+    data = TensorDataset(torch.rand(10, 3), torch.arange(10) % 5)
+    optimizer = torch.optim.SGD(model.parameters(), lr=.01)
+    scaler = torch.amp.GradScaler("cuda")
+    log = runtime.RunLog(tmp_path)
+    try:
+        metrics, _, updates = runtime.run_epoch(model, DataLoader(data, batch_size=5), torch.device("cuda"),
+            config(), log, epoch=1, phase="train", optimizer=optimizer, scaler=scaler, ema=ema)
+    finally:
+        log.close()
+    assert metrics["amp_skipped_steps"] == 1 and updates == 1
+    assert all(torch.isfinite(p).all() for p in model.parameters())

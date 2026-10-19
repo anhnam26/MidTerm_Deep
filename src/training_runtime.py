@@ -64,6 +64,10 @@ def source_digest():
         if path.exists():
             digest.update(name.encode())
             digest.update(path.read_bytes())
+    entrypoint = Path(__file__).parents[1] / "train.py"
+    if entrypoint.exists():
+        digest.update(b"root/train.py")
+        digest.update(entrypoint.read_bytes())
     return digest.hexdigest()
 
 
@@ -198,6 +202,7 @@ def run_epoch(model, data_loader, device, config, log, *, epoch, phase,
     model.train(training)
     loss_sum = correct = samples = skipped = mixed_batches = 0
     grad_sum = grad_max = 0.
+    finite_gradients = 0
     labels, probabilities = [], []
     started = time.perf_counter()
     if device.type == "cuda":
@@ -225,17 +230,28 @@ def run_epoch(model, data_loader, device, config, log, *, epoch, phase,
             if training:
                 scaler.scale(loss).backward()
                 scaler.unscale_(optimizer)
-                grad_norm = float(nn.utils.clip_grad_norm_(model.parameters(), config.grad_clip, error_if_nonfinite=True))
-                grad_sum += grad_norm
-                grad_max = max(grad_max, grad_norm)
                 previous_scale = scaler.get_scale()
-                scaler.step(optimizer)
-                scaler.update()
-                if scaler.get_scale() >= previous_scale:
-                    ema_updates += 1
-                    update_ema(ema, model, config.ema_decay, ema_updates)
-                else:
+                grad_norm = float(nn.utils.clip_grad_norm_(model.parameters(), config.grad_clip, error_if_nonfinite=False))
+                if not math.isfinite(grad_norm):
+                    if not scaler.is_enabled():
+                        raise FloatingPointError("Nonfinite gradients in full precision")
+                    # AMP can overflow at its initial scale despite finite loss.
+                    # Skip this update and reduce scale; never corrupt model/EMA.
+                    scaler.update(new_scale=previous_scale / 2)
+                    grad_norm = None
                     skipped += 1
+                    log.say(f"AMP gradient overflow: skipped update; scale {previous_scale:g} -> {scaler.get_scale():g}")
+                else:
+                    grad_sum += grad_norm
+                    grad_max = max(grad_max, grad_norm)
+                    finite_gradients += 1
+                    scaler.step(optimizer)
+                    scaler.update()
+                    if scaler.get_scale() >= previous_scale:
+                        ema_updates += 1
+                        update_ema(ema, model, config.ema_decay, ema_updates)
+                    else:
+                        skipped += 1
             scores = logits.detach().float().softmax(1)
             if not torch.isfinite(scores).all():
                 raise FloatingPointError("Nonfinite model probabilities")
@@ -265,11 +281,18 @@ def run_epoch(model, data_loader, device, config, log, *, epoch, phase,
     seconds = time.perf_counter() - started
     metrics = classification_metrics(labels, probabilities)
     metrics.update({"loss": loss_sum / samples, "seconds": seconds, "images_per_second": samples / seconds,
-                    "gradient_norm_mean": grad_sum / len(data_loader) if training else None,
+                    "gradient_norm_mean": grad_sum / max(1, finite_gradients) if training else None,
                     "gradient_norm_max": grad_max if training else None, "amp_skipped_steps": skipped,
                     "mixed_batches": mixed_batches, "accuracy_context": "augmented_primary_labels" if training else "unaugmented",
                     "peak_allocated_mib": torch.cuda.max_memory_allocated() / 2**20 if device.type == "cuda" else 0,
                     "peak_reserved_mib": torch.cuda.max_memory_reserved() / 2**20 if device.type == "cuda" else 0})
+    log.say(f"{phase} completed loss={metrics['loss']:.4f} top1={metrics['accuracy']:.2%} "
+            f"precision={metrics['macro_precision']:.4f} recall={metrics['macro_recall']:.4f} "
+            f"F1={metrics['macro_f1']:.4f} GPU_peak={metrics['peak_allocated_mib']:.0f} MiB")
+    if not training:
+        for fruit, item in metrics["per_class"].items():
+            log.say(f"  {fruit:10s} P={item['precision']:.4f} R={item['recall']:.4f} "
+                    f"F1={item['f1-score']:.4f} samples={item['support']:.0f}")
     return metrics, {"labels": labels, "probabilities": probabilities}, ema_updates
 
 
@@ -320,7 +343,10 @@ def _train_job(config, folder, train_data, validation, provenance, selection_kin
                 "schedule": "linear warmup + cosine to 0.01*lr", "source_sha256": source_digest(),
                 "provenance": provenance, "train_images": len(train_data),
                 "validation_images": len(validation) if validation is not None else 0,
-                "selection_kind": selection_kind, "torch": str(torch.__version__), "device": str(device)}
+                "selection_kind": selection_kind, "torch": str(torch.__version__), "device": str(device),
+                "torch_threads": torch.get_num_threads(), "torch_interop_threads": torch.get_num_interop_threads(),
+                "cublas_workspace_config": os.environ.get("CUBLAS_WORKSPACE_CONFIG"),
+                "cudnn_benchmark": False, "cudnn_deterministic": True}
     identity = fingerprint(settings)
     settings_path = folder / "settings.json"
     if settings_path.exists():
@@ -378,6 +404,7 @@ def _train_job(config, folder, train_data, validation, provenance, selection_kin
             f"epochs={config.epochs} resume_after={start_epoch} output={folder}")
     log.say(f"FruitLite-L2 params={properties[str(config.size)]['learnable_parameters']:,} "
             f"FLOPs={properties[str(config.size)]['flops']:,}; best selection={'validation top1, then loss' if validation is not None else 'fixed final epoch'}")
+    log.say("CONFIG " + json.dumps(asdict(config), sort_keys=True))
     try:
         for epoch_index in range(start_epoch, config.epochs):
             # Fresh workers and epoch-specific RNG make interrupted epochs replayable.
