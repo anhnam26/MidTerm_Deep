@@ -21,8 +21,15 @@ FLOPs.
   dưới 20.000.000 byte.
 - Audit đã giải mã toàn bộ 50.500 file, kiểm tra hash manifest, file dư/thiếu,
   cặp hai độ phân giải, trùng encoded/pixel và giao nhóm train/test.
-- FruitLite-L: 408.179 learnable parameters; 587.091.697 FLOPs ở 224 và
-  12.099.313 FLOPs ở 32. Đạt giới hạn mô hình theo profiler hiện có.
+- Model chạy chính FruitLite-L2: **1.250.879 learnable parameters**;
+  **860.413.737 FLOPs ở 224** và **17.973.033 ở 32**. Đạt giới hạn mô hình theo
+  profiler hiện có. Variant legacy 408.179 tham số vẫn đọc được checkpoint cũ.
+- Chạy `train.py` ở thư mục gốc để audit, chia validation, train development,
+  refit đủ 25.000 ảnh và test cả hai kích thước. `last.pt`/`best.pt` cập nhật tại
+  chỗ; checkpoint đủ trạng thái resume; log batch/epoch, chỉ số và biểu đồ lưu
+  trong `outputs/fruitlite_l2_seed2026/`.
+- Bằng chứng hạ tầng, profile, loader và kiểm thử:
+  [training_readiness.json](training_readiness.json). Chưa có accuracy chính thức.
 
 ## Nguồn bổ sung
 

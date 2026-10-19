@@ -5,6 +5,7 @@ from collections import Counter
 import hashlib
 import json
 from pathlib import Path
+import time
 
 from PIL import AvifImagePlugin, Image
 
@@ -55,6 +56,7 @@ def validate(root, rows):
     for size, limit in LIMITS.items():
         expected, file_hashes, pixel_hashes = set(), set(), set()
         total_bytes = 0
+        last_progress = time.monotonic()
         for index, row in enumerate(rows, 1):
             path = image_path(root, row, size)
             if not path.is_file():
@@ -77,8 +79,9 @@ def validate(root, rows):
             file_hashes.add(digest)
             pixel_hashes.add(pixel_hash)
             total_bytes += path.stat().st_size
-            if index % 5000 == 0:
+            if index % 5000 == 0 or time.monotonic() - last_progress >= 10:
                 print(f'INPUT_AUDIT Mid{size}: {index}/{len(rows)}', flush=True)
+                last_progress = time.monotonic()
         actual = {p.resolve() for p in (root / 'DataNew' / f'Mid{size}').rglob('*') if p.is_file()}
         if actual != expected:
             raise ValueError(f'Unmanifested or missing files in Mid{size}')

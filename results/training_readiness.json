@@ -1,0 +1,212 @@
+{
+  "status": "ready_to_start_training_accuracy_unmeasured",
+  "entrypoint": "train.py",
+  "source_sha256": "4116bddf97cbcbec9fc54587d94446c382b7805e0a2696f450be2a813c268030",
+  "python_executable": "C:\\Users\\anhna\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\python.exe",
+  "base_environment_verified": true,
+  "full_test_suite": {
+    "passed": 168,
+    "failed": 0,
+    "seconds": 81.15,
+    "warnings": 310,
+    "warning_origin": "torchvision/Pillow deprecated Image.fromarray mode argument"
+  },
+  "model_name": "FruitLite-L2",
+  "profile": {
+    "224": {
+      "size": 224,
+      "output_shape": [
+        1,
+        5
+      ],
+      "learnable_parameters": 1250879,
+      "macs": 413110080,
+      "other_scalar_ops": 34193577,
+      "flops": 860413737,
+      "eligible": true
+    },
+    "32": {
+      "size": 32,
+      "output_shape": [
+        1,
+        5
+      ],
+      "learnable_parameters": 1250879,
+      "macs": 8632128,
+      "other_scalar_ops": 708777,
+      "flops": 17973033,
+      "eligible": true
+    }
+  },
+  "versions": {
+    "torch": "2.7.1+cu118",
+    "torchvision": "0.22.1+cu118",
+    "Pillow": "11.3.0",
+    "numpy": "2.2.6",
+    "scikit-learn": "1.6.1",
+    "matplotlib": "3.10.5"
+  },
+  "real_loader_probe": {
+    "224": {
+      "input_shape": [
+        2,
+        3,
+        224,
+        224
+      ],
+      "output_shape": [
+        2,
+        5
+      ],
+      "workers": 4
+    },
+    "32": {
+      "input_shape": [
+        2,
+        3,
+        32,
+        32
+      ],
+      "output_shape": [
+        2,
+        5
+      ],
+      "workers": 4
+    }
+  },
+  "dataset_manifest_sha256": "da500de7a5c9ff48314fe0048a6bef500fffb3303b189f6368805cdbbb922109",
+  "full_decoded_input_audit": {
+    "layout": "paired-compressed-v1",
+    "structural_pass": true,
+    "identities": 25250,
+    "capture_groups": 211,
+    "counts": {
+      "train": {
+        "apple": 5000,
+        "banana": 5000,
+        "orange": 5000,
+        "strawberry": 5000,
+        "pineapple": 5000
+      },
+      "test": {
+        "apple": 50,
+        "banana": 50,
+        "orange": 50,
+        "strawberry": 50,
+        "pineapple": 50
+      }
+    },
+    "review_scope": "Technical validation; source and visual-review evidence is recorded separately.",
+    "Mid224": {
+      "images": 25250,
+      "total_bytes": 23148133,
+      "total_mb": 23.148133,
+      "limit_bytes": 25000000,
+      "capacity_pass": true
+    },
+    "Mid32": {
+      "images": 25250,
+      "total_bytes": 14948274,
+      "total_mb": 14.948274,
+      "limit_bytes": 20000000,
+      "capacity_pass": true
+    }
+  },
+  "development_partition": {
+    "seed": 2026,
+    "fraction_requested": 0.1,
+    "partition_sha256": "321c05a3051157d086a3d0ca7d7519cda26d62ffd83597a110619ab265903a17",
+    "train_counts": {
+      "apple": 4500,
+      "banana": 4500,
+      "orange": 4500,
+      "pineapple": 4500,
+      "strawberry": 4500
+    },
+    "validation_counts": {
+      "apple": 500,
+      "banana": 500,
+      "orange": 500,
+      "pineapple": 500,
+      "strawberry": 500
+    },
+    "test_reserved": 250,
+    "unverified_capture_images": 22685,
+    "physical_independence_verified": false,
+    "limitation": "Known specimens stay together. Legacy/import-wide groups use source identity; unknown near duplicates can inflate validation."
+  },
+  "cuda_infrastructure_check": {
+    "purpose": "REAL_IMAGE_CUDA_INFRASTRUCTURE_CHECK_NOT_BENCHMARK_ACCURACY",
+    "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "resolutions": {
+      "224": {
+        "config": {
+          "size": 224,
+          "epochs": 2,
+          "batch_size": 64,
+          "workers": 4,
+          "lr": 0.0015,
+          "weight_decay": 0.01,
+          "warmup": 5,
+          "label_smoothing": 0.05,
+          "dropout": 0.2,
+          "mixup_alpha": 0.2,
+          "mixup_probability": 0.25,
+          "ema_decay": 0.999,
+          "grad_clip": 5.0,
+          "seed": 2026,
+          "device": "cuda",
+          "log_interval": 20
+        },
+        "completed_epochs": 2,
+        "ema_updates": 2,
+        "amp_scale": 65536.0,
+        "train_images": 64,
+        "validation_images": 20,
+        "peak_allocated_mib": 1952.3759765625,
+        "peak_reserved_mib": 2544.0,
+        "checkpoint_readable_weights_only": true,
+        "tested_source_sha256": "dcb4f26198eaa347a1d2ed85f3365f056ed48bb92b77396980dcf2f90152a1fc"
+      },
+      "32": {
+        "config": {
+          "size": 32,
+          "epochs": 2,
+          "batch_size": 256,
+          "workers": 4,
+          "lr": 0.0015,
+          "weight_decay": 0.01,
+          "warmup": 5,
+          "label_smoothing": 0.05,
+          "dropout": 0.2,
+          "mixup_alpha": 0.2,
+          "mixup_probability": 0.25,
+          "ema_decay": 0.999,
+          "grad_clip": 5.0,
+          "seed": 2026,
+          "device": "cuda",
+          "log_interval": 20
+        },
+        "completed_epochs": 2,
+        "ema_updates": 2,
+        "amp_scale": 65536.0,
+        "train_images": 256,
+        "validation_images": 20,
+        "peak_allocated_mib": 241.86865234375,
+        "peak_reserved_mib": 2586.0,
+        "checkpoint_readable_weights_only": true,
+        "tested_source_sha256": "dcb4f26198eaa347a1d2ed85f3365f056ed48bb92b77396980dcf2f90152a1fc"
+      }
+    }
+  },
+  "verification_scope": "Full suite covers current code, including validation-worker reuse. Real-image GPU checks verified both default batch sizes before that worker reuse optimization.",
+  "official_training_started": false,
+  "official_accuracy": null,
+  "open_data_review": [
+    "legacy physical groups and near duplicates",
+    "complete label/visual review",
+    "source rights confirmation"
+  ],
+  "architecture_unique_among_student_groups_verified": false,
+  "pdf_final_report_available": false
+}
