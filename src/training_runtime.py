@@ -345,6 +345,7 @@ def _train_job(config, folder, train_data, validation, provenance, selection_kin
                 "validation_images": len(validation) if validation is not None else 0,
                 "selection_kind": selection_kind, "torch": str(torch.__version__), "device": str(device),
                 "torch_threads": torch.get_num_threads(), "torch_interop_threads": torch.get_num_interop_threads(),
+                "validation_persistent_workers": config.workers > 0 and validation is not None,
                 "cublas_workspace_config": os.environ.get("CUBLAS_WORKSPACE_CONFIG"),
                 "cudnn_benchmark": False, "cudnn_deterministic": True}
     identity = fingerprint(settings)
@@ -389,7 +390,7 @@ def _train_job(config, folder, train_data, validation, provenance, selection_kin
                                   "cuda_runtime": torch.version.cuda,
                                   "cudnn": torch.backends.cudnn.version(), "test_used_during_training": False})
     training_loader = loader(train_data, config.batch_size, config.workers, True, config.seed, device.type == "cuda")
-    val_loader = loader(validation, config.batch_size, config.workers, False, config.seed, device.type == "cuda") if validation is not None else None
+    val_loader = loader(validation, config.batch_size, config.workers, False, config.seed, device.type == "cuda", persistent=True) if validation is not None else None
     log = RunLog(folder)
     start_epoch = state["epoch"] if state else 0
     history = state["history"] if state else []

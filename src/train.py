@@ -79,10 +79,11 @@ class ManifestDataset(Dataset):
         return tensor, CLASSES.index(row["class"])
 
 
-def loader(dataset, batch_size, workers, training, seed, cuda):
+def loader(dataset, batch_size, workers, training, seed, cuda, persistent=False):
     generator = torch.Generator().manual_seed(seed)
     return DataLoader(dataset, batch_size=batch_size, shuffle=training, num_workers=workers,
-                      pin_memory=cuda, worker_init_fn=seed_worker, generator=generator)
+                      pin_memory=cuda, worker_init_fn=seed_worker, generator=generator,
+                      persistent_workers=bool(persistent and workers > 0))
 
 
 def run_epoch(model, data_loader, device, criterion, optimizer=None, scaler=None):

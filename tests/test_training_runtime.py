@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 
 import pytest
 import torch
@@ -152,3 +153,20 @@ def test_amp_overflow_skips_one_update_and_recovers(tmp_path):
         log.close()
     assert metrics["amp_skipped_steps"] == 1 and updates == 1
     assert all(torch.isfinite(p).all() for p in model.parameters())
+
+
+class WorkerIdentityDataset(torch.utils.data.Dataset):
+    def __len__(self):
+        return 8
+
+    def __getitem__(self, index):
+        return os.getpid(), index
+
+
+@pytest.mark.parametrize("workers", [0, 1])
+def test_validation_loader_reuses_workers_and_preserves_order(workers):
+    data = runtime.loader(WorkerIdentityDataset(), 4, workers, False, 2026, False, persistent=True)
+    first = [(pids.tolist(), indices.tolist()) for pids, indices in data]
+    second = [(pids.tolist(), indices.tolist()) for pids, indices in data]
+    assert first == second
+    assert [index for _, indices in first for index in indices] == list(range(8))
