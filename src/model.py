@@ -1,4 +1,4 @@
-"""FruitLite-L: compact residual CNN; identical graph for 224 and 32 inputs."""
+"""FruitLite: custom multiscale residual CNN, one graph for both input sizes."""
 
 import torch
 from torch import nn
@@ -50,20 +50,27 @@ class FruitBlock(nn.Module):
 
 
 class FruitLite(nn.Module):
-    def __init__(self, num_classes=5, multiscale=True, attention=True, dropout=0.2):
+    def __init__(self, num_classes=5, multiscale=True, attention=True, dropout=0.2, variant="legacy"):
         super().__init__()
+        if variant not in ("legacy", "L2"):
+            raise ValueError(f"Unknown FruitLite variant: {variant}")
+        # L2 spends the remaining arithmetic budget on deeper, wider late features.
+        # Keep the legacy graph available for previous checkpoints and ablations.
+        schedule = ((32, 1, 1), (56, 2, 2), (96, 3, 2), (240, 4, 2)) if variant == "L2" else (
+            (32, 1, 1), (56, 2, 2), (96, 3, 2), (160, 2, 2))
+        head_channels = 384 if variant == "L2" else 224
         self.stem = ConvBNAct(3, 16, 3, 2)
         stages = []
         channels = 16
-        for output, repeat, first_stride in ((32, 1, 1), (56, 2, 2), (96, 3, 2), (160, 2, 2)):
+        for output, repeat, first_stride in schedule:
             for index in range(repeat):
                 stages.append(FruitBlock(channels, output, first_stride if index == 0 else 1,
                                          multiscale=multiscale, attention=attention and output >= 96))
                 channels = output
         self.stages = nn.Sequential(*stages)
-        self.head = ConvBNAct(channels, 224)
+        self.head = ConvBNAct(channels, head_channels)
         self.pool = nn.AdaptiveAvgPool2d(1)
-        self.classifier = nn.Sequential(nn.Dropout(dropout), nn.Linear(224, num_classes))
+        self.classifier = nn.Sequential(nn.Dropout(dropout), nn.Linear(head_channels, num_classes))
         for module in self.modules():
             if isinstance(module, nn.Conv2d):
                 nn.init.kaiming_normal_(module.weight, mode="fan_out")

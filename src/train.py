@@ -53,8 +53,9 @@ def image_transform(size, training):
 
 
 class ManifestDataset(Dataset):
-    def __init__(self, size, split, training=False):
-        self.rows = [row for row in read_csv(ROOT / "data" / "metadata" / "splits.csv")
+    def __init__(self, size, split, training=False, rows=None, root=None):
+        self.root = Path(root) if root is not None else ROOT
+        self.rows = list(rows) if rows is not None else [row for row in read_csv(self.root / "data" / "metadata" / "splits.csv")
                      if row["split"] == split or (split == "train_pool" and row["split"] in ("train", "val"))]
         if not self.rows:
             raise ValueError(f"No rows for split {split}")
@@ -68,9 +69,9 @@ class ManifestDataset(Dataset):
         row = self.rows[index]
         if row.get(f"mid{self.size}_path"):
             from .input_dataset import image_path
-            path = image_path(ROOT, row, self.size)
+            path = image_path(self.root, row, self.size)
         else:
-            path = ROOT / "data" / f"Mid{self.size}" / row["split"] / row["class"] / f"{row['id']}.png"
+            path = self.root / "data" / f"Mid{self.size}" / row["split"] / row["class"] / f"{row['id']}.png"
         with Image.open(path) as image:
             if image.mode != "RGB" or image.size != (self.size, self.size):
                 raise ValueError(f"Wrong dataset image: {path}")
