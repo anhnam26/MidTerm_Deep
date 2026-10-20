@@ -1,0 +1,278 @@
+{
+  "checked_on": "2026-10-21",
+  "status": "local_public_tree_prepared",
+  "scope": "Current tracked tree and locally reachable Git history; no publication or remote settings changes.",
+  "audited_commit": "5975b0af2bc8bf678ebc95c2f154d194c7be1c31",
+  "public_tree": {
+    "files_before_this_receipt": 72,
+    "bytes_before_this_receipt": 19757323,
+    "entrypoints": [
+      "train.py",
+      "evaluate.py"
+    ],
+    "datasets_and_checkpoints_tracked": false,
+    "manifest_bytes_match_original": true,
+    "original_history_and_test_evidence_bytes_preserved_in_clean_checkout": true,
+    "readme_links_verified": true,
+    "json_verified": true,
+    "workflow_yaml_parsed": true
+  },
+  "validation": {
+    "working_tree_tests": {
+      "passed": 54,
+      "seconds": 80.82
+    },
+    "clean_checkout_tests": {
+      "passed": 54,
+      "seconds": 54.5,
+      "private_dataset_present": false,
+      "private_checkpoints_present": false
+    },
+    "upstream_deprecation_warnings": 430,
+    "warning_source": "torchvision ColorJitter uses the Pillow mode argument",
+    "ruff_lint": "passed",
+    "ruff_format": "passed",
+    "python_base_environment_verified": true,
+    "cuda_available": true,
+    "torch": "2.7.1+cu118",
+    "torchvision": "0.22.1+cu118",
+    "installed_packages_modified": false,
+    "training_algorithms_ast_comparison": "unchanged in eight formatted core modules and all retained loader/schedule helpers",
+    "completed_run_cli": "verified read-only; no retraining or test inference",
+    "single_image_prediction": "checked with the completed Mid32 checkpoint on CPU; not a new accuracy measurement"
+  },
+  "preservation": {
+    "original_training_and_metadata_files_hash_verified": 88,
+    "dataset_encoded_images_hash_and_inventory_verified": 50500,
+    "completed_epochs": {
+      "mid224_development": 180,
+      "mid224_final": 148,
+      "mid32_development": 220,
+      "mid32_final": 129
+    },
+    "checkpoint_files": 8,
+    "original_run": "outputs/fruitlite_l2_seed2026",
+    "original_source_snapshot": "outputs/fruitlite_l2_seed2026/source",
+    "course_document_local_path": "data/reference/Midterm exam.docx",
+    "course_document_sha256": "a1636643779a2858904fda82a73324d5694f82ace312c452ed6b234a7c7f5e7c"
+  },
+  "cleanup": {
+    "obsolete_tracked_paths_removed": [
+      "Midterm exam.docx",
+      "results/dataset_audit.json",
+      "results/dataset_manifest.csv",
+      "results/dataset_preview.jpg",
+      "results/final_input_audit.json",
+      "results/project_cleanup.json",
+      "results/requirements_audit.md",
+      "results/resume_verification.json",
+      "results/training_readiness.json",
+      "src/acquire.py",
+      "src/benchmark.py",
+      "src/compression.py",
+      "src/data.py",
+      "src/datanew_cleanup.py",
+      "src/dataset_acquire.py",
+      "src/dataset_fill.py",
+      "src/dataset_quota.py",
+      "src/dataset_review.py",
+      "src/promote_input_dataset.py",
+      "src/smoke.py",
+      "tests/test_acquire.py",
+      "tests/test_compression.py",
+      "tests/test_datanew_cleanup.py",
+      "tests/test_dataset_acquire.py",
+      "tests/test_dataset_capacity.py",
+      "tests/test_dataset_fill.py",
+      "tests/test_dataset_quota.py",
+      "tests/test_dataset_review.py",
+      "tests/test_project.py"
+    ],
+    "intermediates": {
+      "action": "moved_outside_repository",
+      "location": "../MidTerm_cleanup_20261021",
+      "files": 96162,
+      "bytes": 10382356307,
+      "permanent_deletion": false,
+      "reason": "Automatic approval review rejected recursive deletion as blocked by policy; a reversible move was used.",
+      "entries": [
+        {
+          "path": "data/fruit_sources_08",
+          "files": 78253,
+          "bytes": 7604056021
+        },
+        {
+          "path": "data/input_candidates_20261019",
+          "files": 5727,
+          "bytes": 890030292
+        },
+        {
+          "path": "data/input_encoded_20261019",
+          "files": 11454,
+          "bytes": 8958720
+        },
+        {
+          "path": "data/quality_models",
+          "files": 30,
+          "bytes": 1605703056
+        },
+        {
+          "path": "data/metadata/sources",
+          "files": 556,
+          "bytes": 130202555
+        },
+        {
+          "path": "outputs/fruitlite_l2_seed2026_before_epoch_logging_20261020_041205",
+          "files": 33,
+          "bytes": 2805611
+        },
+        {
+          "path": "outputs/readiness_check",
+          "files": 28,
+          "bytes": 2730196
+        },
+        {
+          "path": "outputs/readiness_cuda",
+          "files": 19,
+          "bytes": 61609267
+        },
+        {
+          "path": "outputs/resume_process_verification",
+          "files": 20,
+          "bytes": 61631462
+        },
+        {
+          "path": "outputs/timing_estimate",
+          "files": 6,
+          "bytes": 38511
+        },
+        {
+          "path": "src/__pycache__",
+          "files": 10,
+          "bytes": 125151
+        },
+        {
+          "path": ".ruff_cache",
+          "files": 8,
+          "bytes": 2742
+        },
+        {
+          "path": "outputs/epoch_logging_archive_receipt.json",
+          "files": 1,
+          "bytes": 7615
+        },
+        {
+          "path": "outputs/estimate_training_time.py",
+          "files": 1,
+          "bytes": 3247
+        },
+        {
+          "path": "outputs/finish_resume_input_check.py",
+          "files": 1,
+          "bytes": 1057
+        },
+        {
+          "path": "outputs/record_resume_verification.py",
+          "files": 1,
+          "bytes": 3068
+        },
+        {
+          "path": "outputs/resume_upgrade_receipt.json",
+          "files": 1,
+          "bytes": 344
+        },
+        {
+          "path": "outputs/resume_verification_input.json",
+          "files": 1,
+          "bytes": 1214
+        },
+        {
+          "path": "outputs/verify_cuda_runtime.py",
+          "files": 1,
+          "bytes": 2320
+        },
+        {
+          "path": "outputs/verify_resume_process.py",
+          "files": 1,
+          "bytes": 1089
+        },
+        {
+          "path": "results/dataset_audit.json",
+          "files": 1,
+          "bytes": 8973
+        },
+        {
+          "path": "results/dataset_manifest.csv",
+          "files": 1,
+          "bytes": 1520901
+        },
+        {
+          "path": "results/dataset_preview.jpg",
+          "files": 1,
+          "bytes": 395316
+        },
+        {
+          "path": "results/final_input_audit.json",
+          "files": 1,
+          "bytes": 3014
+        },
+        {
+          "path": "results/final_input_manifest.csv",
+          "files": 1,
+          "bytes": 12498253
+        },
+        {
+          "path": "results/input_source_review.json",
+          "files": 1,
+          "bytes": 897
+        },
+        {
+          "path": "results/input_validation.json",
+          "files": 1,
+          "bytes": 832
+        },
+        {
+          "path": "results/project_cleanup.json",
+          "files": 1,
+          "bytes": 5528
+        },
+        {
+          "path": "results/requirements_audit.md",
+          "files": 1,
+          "bytes": 3036
+        },
+        {
+          "path": "results/training_readiness.json",
+          "files": 1,
+          "bytes": 6019
+        }
+      ]
+    },
+    "plan_action_present": false
+  },
+  "secrets": {
+    "scanner": "Gitleaks 8.30.1",
+    "scanner_download_checksum_verified": true,
+    "history_scope": "--all locally reachable refs",
+    "history_scan": "no leaks found",
+    "staged_public_tree_scan": "no leaks found",
+    "reviewed_false_positive": "Exact historical SHA256 decoded-audit cache identity; matched against the local cache. Narrow fingerprint in .gitleaksignore."
+  },
+  "history": {
+    "rewritten": false,
+    "historical_course_document_present": true,
+    "historical_dataset_images_or_checkpoints": false,
+    "note": "Removing the handout from the current public tree does not remove it from older commits."
+  },
+  "github": {
+    "pushed": false,
+    "visibility_changed": false,
+    "remote_actions_releases_issues_wiki_audited": false,
+    "ci": "Configured for repository hygiene; not run on GitHub in this task. Python tests were run locally and in a clean exported checkout.",
+    "branch_protection_or_secret_scanning_settings_changed": false
+  },
+  "remaining_research_limits": [
+    "Source redistribution rights and full visual label review are incomplete.",
+    "Physical independence and near-duplicate review are incomplete; test scores describe the fixed project dataset."
+  ]
+}
