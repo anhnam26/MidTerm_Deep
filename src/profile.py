@@ -19,7 +19,16 @@ from .model import ChannelGate, FruitBlock, FruitLite
 def profile(model, size):
     counters = collections.Counter()
     handles = []
-    supported = (nn.Conv2d, nn.Linear, nn.BatchNorm2d, nn.ReLU, nn.Sigmoid, nn.AdaptiveAvgPool2d, nn.Identity, nn.Dropout)
+    supported = (
+        nn.Conv2d,
+        nn.Linear,
+        nn.BatchNorm2d,
+        nn.ReLU,
+        nn.Sigmoid,
+        nn.AdaptiveAvgPool2d,
+        nn.Identity,
+        nn.Dropout,
+    )
     for module in model.modules():
         if not list(module.children()) and not isinstance(module, supported):
             raise TypeError(f"Uncounted leaf operator: {type(module).__name__}")
@@ -27,7 +36,9 @@ def profile(model, size):
     def hook(module, inputs, output):
         elements = output.numel()
         if isinstance(module, nn.Conv2d):
-            counters["macs"] += elements * (module.in_channels // module.groups) * module.kernel_size[0] * module.kernel_size[1]
+            counters["macs"] += (
+                elements * (module.in_channels // module.groups) * module.kernel_size[0] * module.kernel_size[1]
+            )
             if module.bias is not None:
                 counters["other_ops"] += elements
         elif isinstance(module, nn.Linear):
@@ -58,9 +69,15 @@ def profile(model, size):
         model.train(was_training)
     parameters = sum(param.numel() for param in model.parameters() if param.requires_grad)
     flops = 2 * counters["macs"] + counters["other_ops"]
-    return {"size": size, "output_shape": list(output.shape), "learnable_parameters": parameters,
-            "macs": counters["macs"], "other_scalar_ops": counters["other_ops"], "flops": flops,
-            "eligible": parameters <= 6_000_000 and flops < 1_000_000_000}
+    return {
+        "size": size,
+        "output_shape": list(output.shape),
+        "learnable_parameters": parameters,
+        "macs": counters["macs"],
+        "other_scalar_ops": counters["other_ops"],
+        "flops": flops,
+        "eligible": parameters <= 6_000_000 and flops < 1_000_000_000,
+    }
 
 
 def main():

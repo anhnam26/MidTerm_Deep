@@ -1,0 +1,12 @@
+[tool.ruff]
+target-version = "py313"
+line-length = 120
+include = ["*.py", "pyproject.toml"]
+extend-exclude = ["data", "DataNew", "outputs"]
+
+[tool.ruff.lint]
+select = ["F", "E9"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

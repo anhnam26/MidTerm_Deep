@@ -16,8 +16,9 @@ def tiny_data():
 
 
 def config(**overrides):
-    return runtime.TrainConfig(size=32, epochs=2, batch_size=5, workers=0,
-                               device="cpu", mixup_probability=0, **overrides)
+    return runtime.TrainConfig(
+        size=32, epochs=2, batch_size=5, workers=0, device="cpu", mixup_probability=0, **overrides
+    )
 
 
 def test_completed_epochs_overwrite_two_checkpoints_and_export_metrics(tmp_path, capsys):
@@ -84,12 +85,12 @@ def test_partial_epoch_is_not_checkpointed_and_resume_matches_uninterrupted(tmp_
 def test_missing_last_cannot_silently_restart_a_completed_run(tmp_path):
     data = tiny_data()
     runtime.train_job(config(), tmp_path, data, data, {"fixture": True})
-    best = (tmp_path / 'best.pt').read_bytes()
-    (tmp_path / 'last.pt').unlink()
-    with pytest.raises(ValueError, match='Missing last.pt'):
+    best = (tmp_path / "best.pt").read_bytes()
+    (tmp_path / "last.pt").unlink()
+    with pytest.raises(ValueError, match="Missing last.pt"):
         runtime.train_job(config(), tmp_path, data, data, {"fixture": True})
-    assert not (tmp_path / 'last.pt').exists()
-    assert (tmp_path / 'best.pt').read_bytes() == best
+    assert not (tmp_path / "last.pt").exists()
+    assert (tmp_path / "best.pt").read_bytes() == best
 
 
 def test_resume_refuses_changed_settings_or_provenance(tmp_path):
@@ -97,7 +98,7 @@ def test_resume_refuses_changed_settings_or_provenance(tmp_path):
     runtime.train_job(config(), tmp_path, data, data, {"fixture": True})
     digest = hashlib.sha256((tmp_path / "last.pt").read_bytes()).hexdigest()
     with pytest.raises(ValueError, match="changed"):
-        runtime.train_job(config(lr=.007), tmp_path, data, data, {"fixture": True})
+        runtime.train_job(config(lr=0.007), tmp_path, data, data, {"fixture": True})
     with pytest.raises(ValueError, match="changed"):
         runtime.train_job(config(), tmp_path, data, data, {"fixture": False})
     assert hashlib.sha256((tmp_path / "last.pt").read_bytes()).hexdigest() == digest
@@ -145,7 +146,7 @@ def test_best_does_not_regress_when_validation_declines(tmp_path, monkeypatch):
     def decreasing_validation(*args, **kwargs):
         result = original(*args, **kwargs)
         if kwargs["phase"] != "train":
-            result[0]["accuracy"] = .9 if kwargs["epoch"] == 1 else .1
+            result[0]["accuracy"] = 0.9 if kwargs["epoch"] == 1 else 0.1
         return result
 
     monkeypatch.setattr(runtime, "run_epoch", decreasing_validation)
@@ -159,6 +160,7 @@ def test_best_does_not_regress_when_validation_declines(tmp_path, monkeypatch):
 def test_amp_overflow_skips_one_update_and_recovers(tmp_path):
     from copy import deepcopy
     from torch.utils.data import DataLoader
+
     model = torch.nn.Linear(3, 5).cuda()
     ema = deepcopy(model).requires_grad_(False)
     calls = []
@@ -169,12 +171,22 @@ def test_amp_overflow_skips_one_update_and_recovers(tmp_path):
 
     model.weight.register_hook(overflow_once)
     data = TensorDataset(torch.rand(10, 3), torch.arange(10) % 5)
-    optimizer = torch.optim.SGD(model.parameters(), lr=.01)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
     scaler = torch.amp.GradScaler("cuda")
     log = runtime.RunLog(tmp_path)
     try:
-        metrics, _, updates = runtime.run_epoch(model, DataLoader(data, batch_size=5), torch.device("cuda"),
-            config(), log, epoch=1, phase="train", optimizer=optimizer, scaler=scaler, ema=ema)
+        metrics, _, updates = runtime.run_epoch(
+            model,
+            DataLoader(data, batch_size=5),
+            torch.device("cuda"),
+            config(),
+            log,
+            epoch=1,
+            phase="train",
+            optimizer=optimizer,
+            scaler=scaler,
+            ema=ema,
+        )
     finally:
         log.close()
     assert metrics["amp_skipped_steps"] == 1 and updates == 1

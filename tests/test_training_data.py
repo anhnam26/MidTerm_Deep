@@ -22,17 +22,23 @@ def fixture_rows():
     rows = []
     for fruit in training_data.CLASSES:
         for i in range(20):
-            rows.append({"id": f"{fruit}_{i}", "class": fruit, "split": "train",
-                         "group_id": f"legacy_train_{fruit}", "source_identity": f"{i}.jpg"})
-        rows.append({"id": f"{fruit}_test", "class": fruit, "split": "test",
-                     "group_id": f"legacy_test_{fruit}"})
+            rows.append(
+                {
+                    "id": f"{fruit}_{i}",
+                    "class": fruit,
+                    "split": "train",
+                    "group_id": f"legacy_train_{fruit}",
+                    "source_identity": f"{i}.jpg",
+                }
+            )
+        rows.append({"id": f"{fruit}_test", "class": fruit, "split": "test", "group_id": f"legacy_test_{fruit}"})
     return rows
 
 
 def test_split_is_reproducible_test_untouched_and_unknown_groups_disclosed():
     rows = fixture_rows()
-    train, val, report = training_data.development_split(rows, .2, 2026)
-    a, b, _ = training_data.development_split(list(reversed(rows)), .2, 2026)
+    train, val, report = training_data.development_split(rows, 0.2, 2026)
+    a, b, _ = training_data.development_split(list(reversed(rows)), 0.2, 2026)
     assert {r["id"] for r in a} == {r["id"] for r in train}
     assert {r["id"] for r in b} == {r["id"] for r in val}
     assert len(train) == 80 and len(val) == 20
@@ -48,7 +54,7 @@ def test_specimen_views_stay_together():
     for row in rows:
         if row["class"] == "pineapple" and row["split"] == "train":
             row["group_id"] = f"pqc500_specimen_{int(row['id'].split('_')[-1]) // 2}"
-    train, val, report = training_data.development_split(rows, .2, 7)
+    train, val, report = training_data.development_split(rows, 0.2, 7)
     train_groups = {r["group_id"] for r in train if r["class"] == "pineapple"}
     val_groups = {r["group_id"] for r in val if r["class"] == "pineapple"}
     assert train_groups.isdisjoint(val_groups)
@@ -61,4 +67,4 @@ def test_single_physical_group_cannot_be_split_to_make_validation():
         if row["class"] == "pineapple" and row["split"] == "train":
             row["group_id"] = "pqc500_specimen_only_one"
     with pytest.raises(ValueError, match="groups"):
-        training_data.development_split(rows, .2, 7)
+        training_data.development_split(rows, 0.2, 7)

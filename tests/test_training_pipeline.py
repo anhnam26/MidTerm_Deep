@@ -18,8 +18,7 @@ def paired_fixture(root):
     for fruit in CLASSES:
         for index in range(12):
             split = "train" if index < 10 else "test"
-            row = {"id": f"{fruit}_{index}", "class": fruit, "split": split,
-                   "group_id": f"legacy_{split}_{fruit}"}
+            row = {"id": f"{fruit}_{index}", "class": fruit, "split": split, "group_id": f"legacy_{split}_{fruit}"}
             pixels = Image.fromarray(rng.integers(0, 256, (224, 224, 3), dtype=np.uint8))
             for size, extension in ((224, "avif"), (32, "webp")):
                 path = root / f"DataNew/Mid{size}/{split}/{fruit}/{row['id']}.{extension}"
@@ -30,7 +29,10 @@ def paired_fixture(root):
             rows.append(row)
     write_csv(root / "data/metadata/splits.csv", rows)
     for size in (224, 32):
-        write_json(root / f"configs/mid{size}.json", asdict(TrainConfig(size=size, epochs=2, batch_size=5, workers=0, device="cpu")))
+        write_json(
+            root / f"configs/mid{size}.json",
+            asdict(TrainConfig(size=size, epochs=2, batch_size=5, workers=0, device="cpu")),
+        )
     return rows
 
 
@@ -52,7 +54,7 @@ def test_one_entrypoint_trains_both_sizes_refits_and_tests_once(tmp_path, monkey
 
     monkeypatch.setattr(pipeline, "train_job", guarded_job)
     monkeypatch.setattr(pipeline.ManifestDataset, "__getitem__", track_reads)
-    result = pipeline.run_pipeline(root=tmp_path, run_name="integration", validation_fraction=.2)
+    result = pipeline.run_pipeline(root=tmp_path, run_name="integration", validation_fraction=0.2)
     output = tmp_path / "outputs/integration"
     assert set(result["results"]) == {"224", "32"}
     assert len(test_reads) == 20
@@ -70,7 +72,7 @@ def test_one_entrypoint_trains_both_sizes_refits_and_tests_once(tmp_path, monkey
     # Completed reruns must not evaluate held-out test a second time.
     monkeypatch.setattr(pipeline, "train_job", original_job)
     before = (output / "Mid224/final/test/metrics.json").read_bytes()
-    pipeline.run_pipeline(root=tmp_path, run_name="integration", validation_fraction=.2)
+    pipeline.run_pipeline(root=tmp_path, run_name="integration", validation_fraction=0.2)
     assert len(test_reads) == 20
     assert (output / "Mid224/final/test/metrics.json").read_bytes() == before
 
@@ -95,42 +97,42 @@ def test_pipeline_restart_resumes_last_epoch_without_decoded_audit(tmp_path, mon
     calls = []
 
     def interrupt_second_validation(*args, **kwargs):
-        if kwargs['phase'] == 'val' and kwargs['epoch'] == 2:
-            raise KeyboardInterrupt('simulated stop')
+        if kwargs["phase"] == "val" and kwargs["epoch"] == 2:
+            raise KeyboardInterrupt("simulated stop")
         return original_epoch(*args, **kwargs)
 
-    monkeypatch.setattr(runtime, 'run_epoch', interrupt_second_validation)
+    monkeypatch.setattr(runtime, "run_epoch", interrupt_second_validation)
     with pytest.raises(KeyboardInterrupt):
-        pipeline.run_pipeline(root=tmp_path, run_name='resume', sizes=(32,), validation_fraction=.2)
-    folder = tmp_path / 'outputs/resume'
-    checkpoint = folder / 'Mid32/development/last.pt'
-    assert torch.load(checkpoint, weights_only=True)['epoch'] == 1
+        pipeline.run_pipeline(root=tmp_path, run_name="resume", sizes=(32,), validation_fraction=0.2)
+    folder = tmp_path / "outputs/resume"
+    checkpoint = folder / "Mid32/development/last.pt"
+    assert torch.load(checkpoint, weights_only=True)["epoch"] == 1
     capsys.readouterr()
 
     def track_epochs(*args, **kwargs):
-        if kwargs['phase'] == 'train':
-            calls.append(kwargs['epoch'])
+        if kwargs["phase"] == "train":
+            calls.append(kwargs["epoch"])
         return original_epoch(*args, **kwargs)
 
     def no_full_audit(*args, **kwargs):
-        pytest.fail('Resuming unchanged input must reuse the full decoded audit')
+        pytest.fail("Resuming unchanged input must reuse the full decoded audit")
 
-    monkeypatch.setattr(runtime, 'run_epoch', track_epochs)
-    monkeypatch.setattr(input_dataset, 'validate', no_full_audit)
-    result = pipeline.run_pipeline(root=tmp_path, run_name='resume', sizes=(32,), validation_fraction=.2)
-    assert result['status'] == 'completed'
+    monkeypatch.setattr(runtime, "run_epoch", track_epochs)
+    monkeypatch.setattr(input_dataset, "validate", no_full_audit)
+    result = pipeline.run_pipeline(root=tmp_path, run_name="resume", sizes=(32,), validation_fraction=0.2)
+    assert result["status"] == "completed"
     assert calls[0] == 2
-    assert len(read_csv(folder / 'Mid32/development/epochs.csv')) == 2
-    assert torch.load(checkpoint, weights_only=True)['epoch'] == 2
+    assert len(read_csv(folder / "Mid32/development/epochs.csv")) == 2
+    assert torch.load(checkpoint, weights_only=True)["epoch"] == 2
     output = capsys.readouterr().out
-    assert 'RESUME' in output and 'epoch=1 -> next_epoch=2' in output
-    assert json.loads((folder / 'input_validation.json').read_text())['cached_decoded_audit_reused']
+    assert "RESUME" in output and "epoch=1 -> next_epoch=2" in output
+    assert json.loads((folder / "input_validation.json").read_text())["cached_decoded_audit_reused"]
 
 
 def test_explicit_full_audit_forces_decode_even_with_cached_preflight(tmp_path, monkeypatch):
     paired_fixture(tmp_path)
-    monkeypatch.setattr(input_dataset, 'SPLIT_QUOTAS', {'train': 10, 'test': 2})
-    pipeline.run_pipeline(root=tmp_path, run_name='force', check_only=True)
+    monkeypatch.setattr(input_dataset, "SPLIT_QUOTAS", {"train": 10, "test": 2})
+    pipeline.run_pipeline(root=tmp_path, run_name="force", check_only=True)
     original_validate = input_dataset.validate
     audits = []
 
@@ -138,6 +140,6 @@ def test_explicit_full_audit_forces_decode_even_with_cached_preflight(tmp_path, 
         audits.append(1)
         return original_validate(*args, **kwargs)
 
-    monkeypatch.setattr(input_dataset, 'validate', track_audit)
-    pipeline.run_pipeline(root=tmp_path, run_name='force', check_only=True, full_audit=True)
+    monkeypatch.setattr(input_dataset, "validate", track_audit)
+    pipeline.run_pipeline(root=tmp_path, run_name="force", check_only=True, full_audit=True)
     assert len(audits) == 1

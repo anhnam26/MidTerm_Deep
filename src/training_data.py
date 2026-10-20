@@ -11,16 +11,15 @@ def capture_key(row):
     group = row.get("group_id", "")
     verified = str(row.get("physical_groups_verified", "")).lower() in ("true", "1")
     # These identifiers describe an entire import, not one photographed specimen.
-    aggregate = group.startswith("legacy_") or group in (
-        "bananareal_author_train", "strawshape_training_corpus")
+    aggregate = group.startswith("legacy_") or group in ("bananareal_author_train", "strawshape_training_corpus")
     if group and not aggregate and (verified or group.startswith("pqc500_specimen_")):
         return f"capture:{group}", True
     identity = row.get("source_identity") or row["id"]
     return f"unverified:{row.get('source_dataset', '')}:{row['class']}:{identity}", False
 
 
-def development_split(rows, fraction=.1, seed=2026):
-    if not 0 < fraction < .5:
+def development_split(rows, fraction=0.1, seed=2026):
+    if not 0 < fraction < 0.5:
         raise ValueError("Validation fraction must be between 0 and 0.5")
     if len({row["id"] for row in rows}) != len(rows):
         raise ValueError("Duplicate training identities")
@@ -55,17 +54,33 @@ def development_split(rows, fraction=.1, seed=2026):
         val_ids.update(r["id"] for key in selected for r in groups[key])
     train = sorted((r for r in rows if r["split"] == "train" and r["id"] not in val_ids), key=lambda r: r["id"])
     val = sorted((r for r in rows if r["id"] in val_ids), key=lambda r: r["id"])
-    assignments = [{"id": r["id"], "class": r["class"],
-                    "partition": "test_reserved" if r["split"] == "test" else "val" if r["id"] in val_ids else "train",
-                    "capture_key": capture_key(r)[0], "capture_verified": capture_key(r)[1]}
-                   for r in sorted(rows, key=lambda r: r["id"])]
-    digest = hashlib.sha256("\n".join(f"{r['id']}:{r['partition']}:{r['capture_key']}" for r in assignments).encode()).hexdigest()
+    assignments = [
+        {
+            "id": r["id"],
+            "class": r["class"],
+            "partition": "test_reserved" if r["split"] == "test" else "val" if r["id"] in val_ids else "train",
+            "capture_key": capture_key(r)[0],
+            "capture_verified": capture_key(r)[1],
+        }
+        for r in sorted(rows, key=lambda r: r["id"])
+    ]
+    digest = hashlib.sha256(
+        "\n".join(f"{r['id']}:{r['partition']}:{r['capture_key']}" for r in assignments).encode()
+    ).hexdigest()
     unverified = sum(not capture_key(r)[1] for r in train + val)
-    return train, val, {"seed": seed, "fraction_requested": fraction, "partition_sha256": digest,
-                        "train_counts": dict(Counter(r["class"] for r in train)),
-                        "validation_counts": dict(Counter(r["class"] for r in val)),
-                        "test_reserved": sum(r["split"] == "test" for r in rows),
-                        "unverified_capture_images": unverified,
-                        "physical_independence_verified": unverified == 0,
-                        "limitation": "Known specimens stay together. Legacy/import-wide groups use source identity; unknown near duplicates can inflate validation.",
-                        "assignments": assignments}
+    return (
+        train,
+        val,
+        {
+            "seed": seed,
+            "fraction_requested": fraction,
+            "partition_sha256": digest,
+            "train_counts": dict(Counter(r["class"] for r in train)),
+            "validation_counts": dict(Counter(r["class"] for r in val)),
+            "test_reserved": sum(r["split"] == "test" for r in rows),
+            "unverified_capture_images": unverified,
+            "physical_independence_verified": unverified == 0,
+            "limitation": "Known specimens stay together. Legacy/import-wide groups use source identity; unknown near duplicates can inflate validation.",
+            "assignments": assignments,
+        },
+    )

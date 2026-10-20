@@ -18,7 +18,9 @@ class ChannelGate(nn.Module):
         super().__init__()
         hidden = max(8, channels // 8)
         self.pool = nn.AdaptiveAvgPool2d(1)
-        self.layers = nn.Sequential(nn.Conv2d(channels, hidden, 1), nn.ReLU(), nn.Conv2d(hidden, channels, 1), nn.Sigmoid())
+        self.layers = nn.Sequential(
+            nn.Conv2d(channels, hidden, 1), nn.ReLU(), nn.Conv2d(hidden, channels, 1), nn.Sigmoid()
+        )
 
     def forward(self, x):
         return x * self.layers(self.pool(x))
@@ -30,12 +32,22 @@ class FruitBlock(nn.Module):
         hidden = in_channels * expansion
         self.expand = ConvBNAct(in_channels, hidden)
         self.multiscale = multiscale
-        self.local = ConvBNAct(hidden // 2 if multiscale else hidden, hidden // 2 if multiscale else hidden, 3, stride, hidden // 2 if multiscale else hidden)
+        self.local = ConvBNAct(
+            hidden // 2 if multiscale else hidden,
+            hidden // 2 if multiscale else hidden,
+            3,
+            stride,
+            hidden // 2 if multiscale else hidden,
+        )
         self.context = ConvBNAct(hidden // 2, hidden // 2, 5, stride, hidden // 2) if multiscale else None
         self.gate = ChannelGate(hidden) if attention else nn.Identity()
         self.project = nn.Sequential(nn.Conv2d(hidden, out_channels, 1, bias=False), nn.BatchNorm2d(out_channels))
-        self.shortcut = nn.Identity() if stride == 1 and in_channels == out_channels else nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 1, stride, bias=False), nn.BatchNorm2d(out_channels)
+        self.shortcut = (
+            nn.Identity()
+            if stride == 1 and in_channels == out_channels
+            else nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, 1, stride, bias=False), nn.BatchNorm2d(out_channels)
+            )
         )
         self.activation = nn.ReLU(inplace=True)
 
@@ -56,16 +68,26 @@ class FruitLite(nn.Module):
             raise ValueError(f"Unknown FruitLite variant: {variant}")
         # L2 spends the remaining arithmetic budget on deeper, wider late features.
         # Keep the legacy graph available for previous checkpoints and ablations.
-        schedule = ((32, 1, 1), (56, 2, 2), (96, 3, 2), (240, 4, 2)) if variant == "L2" else (
-            (32, 1, 1), (56, 2, 2), (96, 3, 2), (160, 2, 2))
+        schedule = (
+            ((32, 1, 1), (56, 2, 2), (96, 3, 2), (240, 4, 2))
+            if variant == "L2"
+            else ((32, 1, 1), (56, 2, 2), (96, 3, 2), (160, 2, 2))
+        )
         head_channels = 384 if variant == "L2" else 224
         self.stem = ConvBNAct(3, 16, 3, 2)
         stages = []
         channels = 16
         for output, repeat, first_stride in schedule:
             for index in range(repeat):
-                stages.append(FruitBlock(channels, output, first_stride if index == 0 else 1,
-                                         multiscale=multiscale, attention=attention and output >= 96))
+                stages.append(
+                    FruitBlock(
+                        channels,
+                        output,
+                        first_stride if index == 0 else 1,
+                        multiscale=multiscale,
+                        attention=attention and output >= 96,
+                    )
+                )
                 channels = output
         self.stages = nn.Sequential(*stages)
         self.head = ConvBNAct(channels, head_channels)

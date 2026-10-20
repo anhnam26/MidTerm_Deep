@@ -9,24 +9,37 @@ import subprocess
 import sys
 
 
-PYTHON = Path(r"C:\Users\anhna\AppData\Local\Microsoft\WindowsApps\python3.13.exe")
+PYTHON = (
+    (Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData/Local")) / "Microsoft/WindowsApps/python3.13.exe")
+    if os.name == "nt"
+    else Path(sys.executable)
+)
 
 
 def verify_python():
     if not PYTHON.is_file():
         raise RuntimeError(f"Required Microsoft Store interpreter not found: {PYTHON}")
-    result = subprocess.run([str(PYTHON), "-c", "import sys,json; print(json.dumps([sys.executable,sys.base_prefix]))"],
-                            check=True, capture_output=True, text=True)
+    result = subprocess.run(
+        [str(PYTHON), "-c", "import sys,json; print(json.dumps([sys.executable,sys.base_prefix]))"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
     executable, base = json.loads(result.stdout)
-    if (sys.version_info[:2] != (3, 13) or sys.prefix != sys.base_prefix
-            or os.path.normcase(os.path.realpath(sys.executable)) != os.path.normcase(os.path.realpath(executable))
-            or os.path.normcase(sys.base_prefix) != os.path.normcase(base)):
+    if (
+        sys.version_info[:2] != (3, 13)
+        or sys.prefix != sys.base_prefix
+        or os.path.normcase(os.path.realpath(sys.executable)) != os.path.normcase(os.path.realpath(executable))
+        or os.path.normcase(sys.base_prefix) != os.path.normcase(base)
+    ):
         raise RuntimeError(f"Run this file with the selected base interpreter: {PYTHON}")
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run-name", default="fruitlite_l2_seed2026", help="Change name to start a separate experiment")
+    parser.add_argument(
+        "--run-name", default="fruitlite_l2_seed2026", help="Change name to start a separate experiment"
+    )
     parser.add_argument("--sizes", nargs="+", type=int, choices=(224, 32), default=[224, 32])
     parser.add_argument("--epochs", type=int, help="Override development epochs for both resolutions")
     parser.add_argument("--batch-size", type=int)
@@ -34,7 +47,9 @@ def main(argv=None):
     parser.add_argument("--device", choices=("auto", "cuda", "cpu"))
     parser.add_argument("--threads", type=int, default=4)
     parser.add_argument("--check", action="store_true", help="Audit, profile and check real loaders without training")
-    parser.add_argument("--full-audit", action="store_true", help="Force a full decoded image audit instead of reusing the valid cache")
+    parser.add_argument(
+        "--full-audit", action="store_true", help="Force a full decoded image audit instead of reusing the valid cache"
+    )
     args = parser.parse_args(argv)
     if args.threads < 1:
         parser.error("threads must be positive")
@@ -43,13 +58,34 @@ def main(argv=None):
     os.environ.setdefault("MKL_NUM_THREADS", str(args.threads))
     os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     import torch
+
     torch.set_num_threads(args.threads)
     torch.set_num_interop_threads(1)
+    from src.evaluation import print_results, read_results, run_folder
+
+    folder = run_folder(args.run_name)
+    if (
+        not args.check
+        and not args.full_audit
+        and all(value is None for value in (args.epochs, args.batch_size, args.workers, args.device))
+        and (folder / "summary.json").exists()
+    ):
+        print_results(read_results(folder, args.sizes))
+        print("Completed run verified; no retraining or test inference. Use --run-name for a new experiment.")
+        return 0
     from src.training_pipeline import run_pipeline
+
     try:
-        run_pipeline(run_name=args.run_name, sizes=tuple(args.sizes), epochs=args.epochs,
-                     batch_size=args.batch_size, workers=args.workers, device=args.device, check_only=args.check,
-                     full_audit=args.full_audit)
+        run_pipeline(
+            run_name=args.run_name,
+            sizes=tuple(args.sizes),
+            epochs=args.epochs,
+            batch_size=args.batch_size,
+            workers=args.workers,
+            device=args.device,
+            check_only=args.check,
+            full_audit=args.full_audit,
+        )
     except KeyboardInterrupt:
         print("\nStopped. Run train.py again to resume from the last completed epoch.", flush=True)
         return 130
