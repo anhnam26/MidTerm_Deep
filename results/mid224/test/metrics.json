@@ -1,0 +1,196 @@
+{
+  "evaluation_identity": "7099eeb8630cf7ca0a25f9ee4468bdc9c4992292fe1e59e855c27d477999ef39",
+  "checkpoint_sha256": "aea669404e79858385760065b82f2fb764c4812ea05345a5ddb55e515813ce41",
+  "epoch": 148,
+  "selected_weights": "raw",
+  "classes": [
+    "apple",
+    "banana",
+    "orange",
+    "strawberry",
+    "pineapple"
+  ],
+  "metrics": {
+    "accuracy": 1.0,
+    "correct": 250,
+    "total": 250,
+    "macro_precision": 1.0,
+    "macro_recall": 1.0,
+    "macro_f1": 1.0,
+    "weighted_f1": 1.0,
+    "macro_auroc_ovr": 1.0,
+    "ece_15bins": 0.05032873082160951,
+    "brier": 0.003484324404841616,
+    "per_class": {
+      "apple": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "banana": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "orange": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "strawberry": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "pineapple": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        50,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        50,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        50,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        50,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        50
+      ]
+    ],
+    "loss": 0.05175366175174713,
+    "seconds": 29.770320800016634,
+    "images_per_second": 8.397625328910138,
+    "gradient_norm_mean": null,
+    "gradient_norm_max": null,
+    "amp_skipped_steps": 0,
+    "mixed_batches": 0,
+    "accuracy_context": "unaugmented",
+    "peak_allocated_mib": 389.74072265625,
+    "peak_reserved_mib": 820.0
+  },
+  "selection_used_test": false,
+  "provenance": {
+    "dataset_manifest_sha256": "da500de7a5c9ff48314fe0048a6bef500fffb3303b189f6368805cdbbb922109",
+    "partition": {
+      "seed": 2026,
+      "fraction_requested": 0.1,
+      "partition_sha256": "321c05a3051157d086a3d0ca7d7519cda26d62ffd83597a110619ab265903a17",
+      "train_counts": {
+        "apple": 4500,
+        "banana": 4500,
+        "orange": 4500,
+        "pineapple": 4500,
+        "strawberry": 4500
+      },
+      "validation_counts": {
+        "apple": 500,
+        "banana": 500,
+        "orange": 500,
+        "pineapple": 500,
+        "strawberry": 500
+      },
+      "test_reserved": 250,
+      "unverified_capture_images": 22685,
+      "physical_independence_verified": false,
+      "limitation": "Known specimens stay together. Legacy/import-wide groups use source identity; unknown near duplicates can inflate validation."
+    },
+    "augmentation": {
+      "crop_scale_224": [
+        0.75,
+        1.0
+      ],
+      "crop_scale_32": [
+        0.85,
+        1.0
+      ],
+      "crop_ratio": [
+        0.9,
+        1.1
+      ],
+      "horizontal_flip_probability": 0.5,
+      "rotation_degrees": 10,
+      "rotation_fill_rgb": [
+        127,
+        127,
+        127
+      ],
+      "color_jitter": {
+        "brightness": 0.15,
+        "contrast": 0.15,
+        "saturation": 0.1,
+        "hue": 0.015
+      },
+      "random_erasing_probability": 0.1,
+      "random_erasing_scale": [
+        0.02,
+        0.12
+      ],
+      "normalization_mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "normalization_std": [
+        0.229,
+        0.224,
+        0.225
+      ],
+      "pretrained_weights": false
+    },
+    "test_used_for_selection": false,
+    "dataset_review": {
+      "layout": "paired-compressed-v1",
+      "source": "DataNew",
+      "dataset_limit_bytes": {
+        "224": 25000000,
+        "32": 20000000
+      },
+      "capacity_unit": "MB (1,000,000 bytes)",
+      "official_test_preserved": true,
+      "source_rights_review_complete": false,
+      "visual_review_complete": false,
+      "technical_quota_complete": true
+    },
+    "purpose": "final_full_pool_refit",
+    "selection": {
+      "epoch_budget": 148,
+      "selected_weights": "raw",
+      "development_validation_accuracy": 0.9956,
+      "selection_rule": "validation_top1_then_loss",
+      "test_used": false
+    }
+  }
+}

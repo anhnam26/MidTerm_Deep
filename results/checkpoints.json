@@ -1,0 +1,70 @@
+{
+  "run": "fruitlite_l2_seed2026",
+  "weights_distributed": false,
+  "files": [
+    {
+      "path": "outputs/fruitlite_l2_seed2026/Mid224/development/best.pt",
+      "sha256": "47e39a1729b85111f118e26b11e6d41e7a550449e6aef1ef41bcb787cfdebf7f",
+      "bytes": 5152667,
+      "resolution": 224,
+      "phase": "development",
+      "kind": "best"
+    },
+    {
+      "path": "outputs/fruitlite_l2_seed2026/Mid224/development/last.pt",
+      "sha256": "0c3ef2cc51521722e40f3c09dc8178966458e9499ecaecc3ea3c01abbbadfc1d",
+      "bytes": 26012167,
+      "resolution": 224,
+      "phase": "development",
+      "kind": "last"
+    },
+    {
+      "path": "outputs/fruitlite_l2_seed2026/Mid224/final/best.pt",
+      "sha256": "aea669404e79858385760065b82f2fb764c4812ea05345a5ddb55e515813ce41",
+      "bytes": 5151707,
+      "resolution": 224,
+      "phase": "final",
+      "kind": "best"
+    },
+    {
+      "path": "outputs/fruitlite_l2_seed2026/Mid224/final/last.pt",
+      "sha256": "645778b5ef7e98854a53bfb5c199a82b85b28172de1c0414133d6d692d31768f",
+      "bytes": 25730759,
+      "resolution": 224,
+      "phase": "final",
+      "kind": "last"
+    },
+    {
+      "path": "outputs/fruitlite_l2_seed2026/Mid32/development/best.pt",
+      "sha256": "7d82856b7a91dbbb3e9aac6883846767afe9a4f6bcb0afdaff72e6eaac537c62",
+      "bytes": 5152667,
+      "resolution": 32,
+      "phase": "development",
+      "kind": "best"
+    },
+    {
+      "path": "outputs/fruitlite_l2_seed2026/Mid32/development/last.pt",
+      "sha256": "4be18007f47274859b308990a68725ebab5612a350883f7988c4e883323a30a6",
+      "bytes": 26102791,
+      "resolution": 32,
+      "phase": "development",
+      "kind": "last"
+    },
+    {
+      "path": "outputs/fruitlite_l2_seed2026/Mid32/final/best.pt",
+      "sha256": "8c56d4744a4e885712a8b6009d08bf6a6d7fa619412563f42d24d463e893ed19",
+      "bytes": 5151643,
+      "resolution": 32,
+      "phase": "final",
+      "kind": "best"
+    },
+    {
+      "path": "outputs/fruitlite_l2_seed2026/Mid32/final/last.pt",
+      "sha256": "de074b3a4c347102cb7c9eb416a1f21a1834f4c27dddac5823981c5b76b1659f",
+      "bytes": 25714823,
+      "resolution": 32,
+      "phase": "final",
+      "kind": "last"
+    }
+  ]
+}

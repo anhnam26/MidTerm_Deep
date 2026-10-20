@@ -1,0 +1,7 @@
+{
+  "epoch_budget": 129,
+  "selected_weights": "ema",
+  "development_validation_accuracy": 0.9888,
+  "selection_rule": "validation_top1_then_loss",
+  "test_used": false
+}

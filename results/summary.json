@@ -1,0 +1,18 @@
+{
+  "status": "completed",
+  "workflow_identity": "ae2709dad284171ee114ec9bde54ae9cbfd7495779a4abe9289181cb6351becd",
+  "results": {
+    "224": {
+      "test_accuracy": 1.0,
+      "test_macro_f1": 1.0,
+      "epoch_budget": 148,
+      "metrics_path": "Mid224/final/test/metrics.json"
+    },
+    "32": {
+      "test_accuracy": 0.996,
+      "test_macro_f1": 0.9959995999599961,
+      "epoch_budget": 129,
+      "metrics_path": "Mid32/final/test/metrics.json"
+    }
+  }
+}

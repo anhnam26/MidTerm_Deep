@@ -1,0 +1,196 @@
+{
+  "evaluation_identity": "0a7f4121e53075f6655c82ee5d151a0179768bfc250d1bf838bc23238f8ab4fe",
+  "checkpoint_sha256": "8c56d4744a4e885712a8b6009d08bf6a6d7fa619412563f42d24d463e893ed19",
+  "epoch": 129,
+  "selected_weights": "ema",
+  "classes": [
+    "apple",
+    "banana",
+    "orange",
+    "strawberry",
+    "pineapple"
+  ],
+  "metrics": {
+    "accuracy": 0.996,
+    "correct": 249,
+    "total": 250,
+    "macro_precision": 0.996078431372549,
+    "macro_recall": 0.9960000000000001,
+    "macro_f1": 0.9959995999599961,
+    "weighted_f1": 0.995999599959996,
+    "macro_auroc_ovr": 0.9999800000000001,
+    "ece_15bins": 0.04814466238021852,
+    "brier": 0.00875421523473043,
+    "per_class": {
+      "apple": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "banana": {
+        "precision": 1.0,
+        "recall": 0.98,
+        "f1-score": 0.98989898989899,
+        "support": 50.0
+      },
+      "orange": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      },
+      "strawberry": {
+        "precision": 0.9803921568627451,
+        "recall": 1.0,
+        "f1-score": 0.9900990099009901,
+        "support": 50.0
+      },
+      "pineapple": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 50.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        50,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        49,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        50,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        50,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        50
+      ]
+    ],
+    "loss": 0.054338499903678894,
+    "seconds": 30.349440799909644,
+    "images_per_second": 8.237384064115748,
+    "gradient_norm_mean": null,
+    "gradient_norm_max": null,
+    "amp_skipped_steps": 0,
+    "mixed_batches": 0,
+    "accuracy_context": "unaugmented",
+    "peak_allocated_mib": 107.22900390625,
+    "peak_reserved_mib": 820.0
+  },
+  "selection_used_test": false,
+  "provenance": {
+    "dataset_manifest_sha256": "da500de7a5c9ff48314fe0048a6bef500fffb3303b189f6368805cdbbb922109",
+    "partition": {
+      "seed": 2026,
+      "fraction_requested": 0.1,
+      "partition_sha256": "321c05a3051157d086a3d0ca7d7519cda26d62ffd83597a110619ab265903a17",
+      "train_counts": {
+        "apple": 4500,
+        "banana": 4500,
+        "orange": 4500,
+        "pineapple": 4500,
+        "strawberry": 4500
+      },
+      "validation_counts": {
+        "apple": 500,
+        "banana": 500,
+        "orange": 500,
+        "pineapple": 500,
+        "strawberry": 500
+      },
+      "test_reserved": 250,
+      "unverified_capture_images": 22685,
+      "physical_independence_verified": false,
+      "limitation": "Known specimens stay together. Legacy/import-wide groups use source identity; unknown near duplicates can inflate validation."
+    },
+    "augmentation": {
+      "crop_scale_224": [
+        0.75,
+        1.0
+      ],
+      "crop_scale_32": [
+        0.85,
+        1.0
+      ],
+      "crop_ratio": [
+        0.9,
+        1.1
+      ],
+      "horizontal_flip_probability": 0.5,
+      "rotation_degrees": 10,
+      "rotation_fill_rgb": [
+        127,
+        127,
+        127
+      ],
+      "color_jitter": {
+        "brightness": 0.15,
+        "contrast": 0.15,
+        "saturation": 0.1,
+        "hue": 0.015
+      },
+      "random_erasing_probability": 0.1,
+      "random_erasing_scale": [
+        0.02,
+        0.12
+      ],
+      "normalization_mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "normalization_std": [
+        0.229,
+        0.224,
+        0.225
+      ],
+      "pretrained_weights": false
+    },
+    "test_used_for_selection": false,
+    "dataset_review": {
+      "layout": "paired-compressed-v1",
+      "source": "DataNew",
+      "dataset_limit_bytes": {
+        "224": 25000000,
+        "32": 20000000
+      },
+      "capacity_unit": "MB (1,000,000 bytes)",
+      "official_test_preserved": true,
+      "source_rights_review_complete": false,
+      "visual_review_complete": false,
+      "technical_quota_complete": true
+    },
+    "purpose": "final_full_pool_refit",
+    "selection": {
+      "epoch_budget": 129,
+      "selected_weights": "ema",
+      "development_validation_accuracy": 0.9888,
+      "selection_rule": "validation_top1_then_loss",
+      "test_used": false
+    }
+  }
+}

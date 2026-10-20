@@ -1,0 +1,3 @@
+resolution,test_correct,test_total,test_accuracy,macro_f1,final_epochs,selected_weights
+224,250,250,1.0,1.0,148,raw
+32,249,250,0.996,0.9959995999599961,129,ema

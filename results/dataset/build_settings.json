@@ -1,0 +1,13 @@
+{
+  "layout": "paired-compressed-v1",
+  "source": "DataNew",
+  "dataset_limit_bytes": {
+    "224": 25000000,
+    "32": 20000000
+  },
+  "capacity_unit": "MB (1,000,000 bytes)",
+  "official_test_preserved": true,
+  "source_rights_review_complete": false,
+  "visual_review_complete": false,
+  "technical_quota_complete": true
+}

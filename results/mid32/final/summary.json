@@ -1,0 +1,9 @@
+{
+  "status": "completed",
+  "completed_epochs": 129,
+  "best_epoch": 129,
+  "best_validation_accuracy": null,
+  "selected_weights": "ema",
+  "selection_rule": "fixed_final_epoch",
+  "test_used_during_training": false
+}

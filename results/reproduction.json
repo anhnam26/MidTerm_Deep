@@ -1,0 +1,139 @@
+{
+  "run": "fruitlite_l2_seed2026",
+  "workflow": {
+    "identity": "ae2709dad284171ee114ec9bde54ae9cbfd7495779a4abe9289181cb6351becd",
+    "configs": {
+      "224": {
+        "size": 224,
+        "epochs": 180,
+        "batch_size": 64,
+        "workers": 4,
+        "lr": 0.0015,
+        "weight_decay": 0.01,
+        "warmup": 5,
+        "label_smoothing": 0.05,
+        "dropout": 0.2,
+        "mixup_alpha": 0.2,
+        "mixup_probability": 0.25,
+        "ema_decay": 0.999,
+        "grad_clip": 5.0,
+        "seed": 2026,
+        "device": "auto",
+        "log_interval": 20
+      },
+      "32": {
+        "size": 32,
+        "epochs": 220,
+        "batch_size": 256,
+        "workers": 4,
+        "lr": 0.0015,
+        "weight_decay": 0.01,
+        "warmup": 5,
+        "label_smoothing": 0.05,
+        "dropout": 0.2,
+        "mixup_alpha": 0.2,
+        "mixup_probability": 0.25,
+        "ema_decay": 0.999,
+        "grad_clip": 5.0,
+        "seed": 2026,
+        "device": "auto",
+        "log_interval": 20
+      }
+    },
+    "provenance": {
+      "dataset_manifest_sha256": "da500de7a5c9ff48314fe0048a6bef500fffb3303b189f6368805cdbbb922109",
+      "partition": {
+        "seed": 2026,
+        "fraction_requested": 0.1,
+        "partition_sha256": "321c05a3051157d086a3d0ca7d7519cda26d62ffd83597a110619ab265903a17",
+        "train_counts": {
+          "apple": 4500,
+          "banana": 4500,
+          "orange": 4500,
+          "pineapple": 4500,
+          "strawberry": 4500
+        },
+        "validation_counts": {
+          "apple": 500,
+          "banana": 500,
+          "orange": 500,
+          "pineapple": 500,
+          "strawberry": 500
+        },
+        "test_reserved": 250,
+        "unverified_capture_images": 22685,
+        "physical_independence_verified": false,
+        "limitation": "Known specimens stay together. Legacy/import-wide groups use source identity; unknown near duplicates can inflate validation."
+      },
+      "augmentation": {
+        "crop_scale_224": [
+          0.75,
+          1.0
+        ],
+        "crop_scale_32": [
+          0.85,
+          1.0
+        ],
+        "crop_ratio": [
+          0.9,
+          1.1
+        ],
+        "horizontal_flip_probability": 0.5,
+        "rotation_degrees": 10,
+        "rotation_fill_rgb": [
+          127,
+          127,
+          127
+        ],
+        "color_jitter": {
+          "brightness": 0.15,
+          "contrast": 0.15,
+          "saturation": 0.1,
+          "hue": 0.015
+        },
+        "random_erasing_probability": 0.1,
+        "random_erasing_scale": [
+          0.02,
+          0.12
+        ],
+        "normalization_mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "normalization_std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "pretrained_weights": false
+      },
+      "test_used_for_selection": false,
+      "dataset_review": {
+        "layout": "paired-compressed-v1",
+        "source": "DataNew",
+        "dataset_limit_bytes": {
+          "224": 25000000,
+          "32": 20000000
+        },
+        "capacity_unit": "MB (1,000,000 bytes)",
+        "official_test_preserved": true,
+        "source_rights_review_complete": false,
+        "visual_review_complete": false,
+        "technical_quota_complete": true
+      }
+    },
+    "source_sha256": "bc299da40861b7b53327617b82ef198f9e96a1d6fc5044f8476085aadd25eaff",
+    "stages": [
+      "development",
+      "full_pool_refit",
+      "locked_test"
+    ]
+  },
+  "training_code_commit": "f4d0223bfa56d896da257310303c371bff3d10e1",
+  "training_source_sha256": "bc299da40861b7b53327617b82ef198f9e96a1d6fc5044f8476085aadd25eaff",
+  "dataset_manifest": "results/dataset/manifest.csv",
+  "dataset_manifest_sha256": "da500de7a5c9ff48314fe0048a6bef500fffb3303b189f6368805cdbbb922109",
+  "original_run_preserved_locally": "outputs/fruitlite_l2_seed2026",
+  "export_note": "Settings omit the local python_executable path. Recorded identities refer to the original training run, not the cleaned source tree. Metrics and histories are copied byte-for-byte. No test rerun or retraining was performed."
+}

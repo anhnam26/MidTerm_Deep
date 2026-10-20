@@ -1,0 +1,9 @@
+{
+  "status": "completed",
+  "completed_epochs": 180,
+  "best_epoch": 148,
+  "best_validation_accuracy": 0.9956,
+  "selected_weights": "raw",
+  "selection_rule": "validation_top1_then_loss",
+  "test_used_during_training": false
+}

@@ -1,0 +1,167 @@
+{
+  "identity": "90a4d0292adc7fb0858bbe054cddf4611445b07c9349f064d0d5f3743b8f0313",
+  "config": {
+    "size": 224,
+    "epochs": 180,
+    "batch_size": 64,
+    "workers": 4,
+    "lr": 0.0015,
+    "weight_decay": 0.01,
+    "warmup": 5,
+    "label_smoothing": 0.05,
+    "dropout": 0.2,
+    "mixup_alpha": 0.2,
+    "mixup_probability": 0.25,
+    "ema_decay": 0.999,
+    "grad_clip": 5.0,
+    "seed": 2026,
+    "device": "auto",
+    "log_interval": 20
+  },
+  "model_settings": {
+    "variant": "L2",
+    "dropout": 0.2
+  },
+  "optimizer": "AdamW",
+  "betas": [
+    0.9,
+    0.999
+  ],
+  "decay_policy": "weights_only_no_bias_or_BN",
+  "schedule": "linear warmup + cosine to 0.01*lr",
+  "source_sha256": "bc299da40861b7b53327617b82ef198f9e96a1d6fc5044f8476085aadd25eaff",
+  "provenance": {
+    "dataset_manifest_sha256": "da500de7a5c9ff48314fe0048a6bef500fffb3303b189f6368805cdbbb922109",
+    "partition": {
+      "seed": 2026,
+      "fraction_requested": 0.1,
+      "partition_sha256": "321c05a3051157d086a3d0ca7d7519cda26d62ffd83597a110619ab265903a17",
+      "train_counts": {
+        "apple": 4500,
+        "banana": 4500,
+        "orange": 4500,
+        "pineapple": 4500,
+        "strawberry": 4500
+      },
+      "validation_counts": {
+        "apple": 500,
+        "banana": 500,
+        "orange": 500,
+        "pineapple": 500,
+        "strawberry": 500
+      },
+      "test_reserved": 250,
+      "unverified_capture_images": 22685,
+      "physical_independence_verified": false,
+      "limitation": "Known specimens stay together. Legacy/import-wide groups use source identity; unknown near duplicates can inflate validation."
+    },
+    "augmentation": {
+      "crop_scale_224": [
+        0.75,
+        1.0
+      ],
+      "crop_scale_32": [
+        0.85,
+        1.0
+      ],
+      "crop_ratio": [
+        0.9,
+        1.1
+      ],
+      "horizontal_flip_probability": 0.5,
+      "rotation_degrees": 10,
+      "rotation_fill_rgb": [
+        127,
+        127,
+        127
+      ],
+      "color_jitter": {
+        "brightness": 0.15,
+        "contrast": 0.15,
+        "saturation": 0.1,
+        "hue": 0.015
+      },
+      "random_erasing_probability": 0.1,
+      "random_erasing_scale": [
+        0.02,
+        0.12
+      ],
+      "normalization_mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "normalization_std": [
+        0.229,
+        0.224,
+        0.225
+      ],
+      "pretrained_weights": false
+    },
+    "test_used_for_selection": false,
+    "dataset_review": {
+      "layout": "paired-compressed-v1",
+      "source": "DataNew",
+      "dataset_limit_bytes": {
+        "224": 25000000,
+        "32": 20000000
+      },
+      "capacity_unit": "MB (1,000,000 bytes)",
+      "official_test_preserved": true,
+      "source_rights_review_complete": false,
+      "visual_review_complete": false,
+      "technical_quota_complete": true
+    },
+    "purpose": "development"
+  },
+  "train_images": 22500,
+  "validation_images": 2500,
+  "selection_kind": "ema",
+  "torch": "2.7.1+cu118",
+  "device": "cuda",
+  "torch_threads": 4,
+  "torch_interop_threads": 1,
+  "validation_persistent_workers": true,
+  "cublas_workspace_config": ":4096:8",
+  "cudnn_benchmark": false,
+  "cudnn_deterministic": true,
+  "profile": {
+    "224": {
+      "size": 224,
+      "output_shape": [
+        1,
+        5
+      ],
+      "learnable_parameters": 1250879,
+      "macs": 413110080,
+      "other_scalar_ops": 34193577,
+      "flops": 860413737,
+      "eligible": true
+    },
+    "32": {
+      "size": 32,
+      "output_shape": [
+        1,
+        5
+      ],
+      "learnable_parameters": 1250879,
+      "macs": 8632128,
+      "other_scalar_ops": 708777,
+      "flops": 17973033,
+      "eligible": true
+    }
+  },
+  "model": "FruitLite(\n  (stem): ConvBNAct(\n    (0): Conv2d(3, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)\n    (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (2): ReLU(inplace=True)\n  )\n  (stages): Sequential(\n    (0): FruitBlock(\n      (expand): ConvBNAct(\n        (0): Conv2d(16, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (local): ConvBNAct(\n        (0): Conv2d(16, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=16, bias=False)\n        (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (context): ConvBNAct(\n        (0): Conv2d(16, 16, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=16, bias=False)\n        (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (gate): Identity()\n      (project): Sequential(\n        (0): Conv2d(32, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (shortcut): Sequential(\n        (0): Conv2d(16, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (activation): ReLU(inplace=True)\n    )\n    (1): FruitBlock(\n      (expand): ConvBNAct(\n        (0): Conv2d(32, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (local): ConvBNAct(\n        (0): Conv2d(32, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=32, bias=False)\n        (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (context): ConvBNAct(\n        (0): Conv2d(32, 32, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2), groups=32, bias=False)\n        (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (gate): Identity()\n      (project): Sequential(\n        (0): Conv2d(64, 56, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(56, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (shortcut): Sequential(\n        (0): Conv2d(32, 56, kernel_size=(1, 1), stride=(2, 2), bias=False)\n        (1): BatchNorm2d(56, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (activation): ReLU(inplace=True)\n    )\n    (2): FruitBlock(\n      (expand): ConvBNAct(\n        (0): Conv2d(56, 112, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(112, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (local): ConvBNAct(\n        (0): Conv2d(56, 56, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=56, bias=False)\n        (1): BatchNorm2d(56, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (context): ConvBNAct(\n        (0): Conv2d(56, 56, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=56, bias=False)\n        (1): BatchNorm2d(56, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (gate): Identity()\n      (project): Sequential(\n        (0): Conv2d(112, 56, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(56, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (shortcut): Identity()\n      (activation): ReLU(inplace=True)\n    )\n    (3): FruitBlock(\n      (expand): ConvBNAct(\n        (0): Conv2d(56, 112, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(112, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (local): ConvBNAct(\n        (0): Conv2d(56, 56, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=56, bias=False)\n        (1): BatchNorm2d(56, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (context): ConvBNAct(\n        (0): Conv2d(56, 56, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2), groups=56, bias=False)\n        (1): BatchNorm2d(56, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (gate): ChannelGate(\n        (pool): AdaptiveAvgPool2d(output_size=1)\n        (layers): Sequential(\n          (0): Conv2d(112, 14, kernel_size=(1, 1), stride=(1, 1))\n          (1): ReLU()\n          (2): Conv2d(14, 112, kernel_size=(1, 1), stride=(1, 1))\n          (3): Sigmoid()\n        )\n      )\n      (project): Sequential(\n        (0): Conv2d(112, 96, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (shortcut): Sequential(\n        (0): Conv2d(56, 96, kernel_size=(1, 1), stride=(2, 2), bias=False)\n        (1): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (activation): ReLU(inplace=True)\n    )\n    (4): FruitBlock(\n      (expand): ConvBNAct(\n        (0): Conv2d(96, 192, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (local): ConvBNAct(\n        (0): Conv2d(96, 96, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=96, bias=False)\n        (1): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (context): ConvBNAct(\n        (0): Conv2d(96, 96, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=96, bias=False)\n        (1): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (gate): ChannelGate(\n        (pool): AdaptiveAvgPool2d(output_size=1)\n        (layers): Sequential(\n          (0): Conv2d(192, 24, kernel_size=(1, 1), stride=(1, 1))\n          (1): ReLU()\n          (2): Conv2d(24, 192, kernel_size=(1, 1), stride=(1, 1))\n          (3): Sigmoid()\n        )\n      )\n      (project): Sequential(\n        (0): Conv2d(192, 96, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (shortcut): Identity()\n      (activation): ReLU(inplace=True)\n    )\n    (5): FruitBlock(\n      (expand): ConvBNAct(\n        (0): Conv2d(96, 192, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (local): ConvBNAct(\n        (0): Conv2d(96, 96, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=96, bias=False)\n        (1): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (context): ConvBNAct(\n        (0): Conv2d(96, 96, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=96, bias=False)\n        (1): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (gate): ChannelGate(\n        (pool): AdaptiveAvgPool2d(output_size=1)\n        (layers): Sequential(\n          (0): Conv2d(192, 24, kernel_size=(1, 1), stride=(1, 1))\n          (1): ReLU()\n          (2): Conv2d(24, 192, kernel_size=(1, 1), stride=(1, 1))\n          (3): Sigmoid()\n        )\n      )\n      (project): Sequential(\n        (0): Conv2d(192, 96, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (shortcut): Identity()\n      (activation): ReLU(inplace=True)\n    )\n    (6): FruitBlock(\n      (expand): ConvBNAct(\n        (0): Conv2d(96, 192, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(192, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (local): ConvBNAct(\n        (0): Conv2d(96, 96, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=96, bias=False)\n        (1): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (context): ConvBNAct(\n        (0): Conv2d(96, 96, kernel_size=(5, 5), stride=(2, 2), padding=(2, 2), groups=96, bias=False)\n        (1): BatchNorm2d(96, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (gate): ChannelGate(\n        (pool): AdaptiveAvgPool2d(output_size=1)\n        (layers): Sequential(\n          (0): Conv2d(192, 24, kernel_size=(1, 1), stride=(1, 1))\n          (1): ReLU()\n          (2): Conv2d(24, 192, kernel_size=(1, 1), stride=(1, 1))\n          (3): Sigmoid()\n        )\n      )\n      (project): Sequential(\n        (0): Conv2d(192, 240, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(240, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (shortcut): Sequential(\n        (0): Conv2d(96, 240, kernel_size=(1, 1), stride=(2, 2), bias=False)\n        (1): BatchNorm2d(240, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (activation): ReLU(inplace=True)\n    )\n    (7): FruitBlock(\n      (expand): ConvBNAct(\n        (0): Conv2d(240, 480, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(480, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (local): ConvBNAct(\n        (0): Conv2d(240, 240, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=240, bias=False)\n        (1): BatchNorm2d(240, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (context): ConvBNAct(\n        (0): Conv2d(240, 240, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=240, bias=False)\n        (1): BatchNorm2d(240, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (gate): ChannelGate(\n        (pool): AdaptiveAvgPool2d(output_size=1)\n        (layers): Sequential(\n          (0): Conv2d(480, 60, kernel_size=(1, 1), stride=(1, 1))\n          (1): ReLU()\n          (2): Conv2d(60, 480, kernel_size=(1, 1), stride=(1, 1))\n          (3): Sigmoid()\n        )\n      )\n      (project): Sequential(\n        (0): Conv2d(480, 240, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(240, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (shortcut): Identity()\n      (activation): ReLU(inplace=True)\n    )\n    (8): FruitBlock(\n      (expand): ConvBNAct(\n        (0): Conv2d(240, 480, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(480, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (local): ConvBNAct(\n        (0): Conv2d(240, 240, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=240, bias=False)\n        (1): BatchNorm2d(240, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (context): ConvBNAct(\n        (0): Conv2d(240, 240, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=240, bias=False)\n        (1): BatchNorm2d(240, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (gate): ChannelGate(\n        (pool): AdaptiveAvgPool2d(output_size=1)\n        (layers): Sequential(\n          (0): Conv2d(480, 60, kernel_size=(1, 1), stride=(1, 1))\n          (1): ReLU()\n          (2): Conv2d(60, 480, kernel_size=(1, 1), stride=(1, 1))\n          (3): Sigmoid()\n        )\n      )\n      (project): Sequential(\n        (0): Conv2d(480, 240, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(240, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (shortcut): Identity()\n      (activation): ReLU(inplace=True)\n    )\n    (9): FruitBlock(\n      (expand): ConvBNAct(\n        (0): Conv2d(240, 480, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(480, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (local): ConvBNAct(\n        (0): Conv2d(240, 240, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=240, bias=False)\n        (1): BatchNorm2d(240, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (context): ConvBNAct(\n        (0): Conv2d(240, 240, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=240, bias=False)\n        (1): BatchNorm2d(240, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n        (2): ReLU(inplace=True)\n      )\n      (gate): ChannelGate(\n        (pool): AdaptiveAvgPool2d(output_size=1)\n        (layers): Sequential(\n          (0): Conv2d(480, 60, kernel_size=(1, 1), stride=(1, 1))\n          (1): ReLU()\n          (2): Conv2d(60, 480, kernel_size=(1, 1), stride=(1, 1))\n          (3): Sigmoid()\n        )\n      )\n      (project): Sequential(\n        (0): Conv2d(480, 240, kernel_size=(1, 1), stride=(1, 1), bias=False)\n        (1): BatchNorm2d(240, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n      )\n      (shortcut): Identity()\n      (activation): ReLU(inplace=True)\n    )\n  )\n  (head): ConvBNAct(\n    (0): Conv2d(240, 384, kernel_size=(1, 1), stride=(1, 1), bias=False)\n    (1): BatchNorm2d(384, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n    (2): ReLU(inplace=True)\n  )\n  (pool): AdaptiveAvgPool2d(output_size=1)\n  (classifier): Sequential(\n    (0): Dropout(p=0.2, inplace=False)\n    (1): Linear(in_features=384, out_features=5, bias=True)\n  )\n)",
+  "classes": [
+    "apple",
+    "banana",
+    "orange",
+    "strawberry",
+    "pineapple"
+  ],
+  "python": "3.13.14 (tags/v3.13.14:fd17997, Jun 10 2026, 13:03:48) [MSC v.1944 64 bit (AMD64)]",
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "cuda_runtime": "11.8",
+  "cudnn": 90100,
+  "test_used_during_training": false
+}
