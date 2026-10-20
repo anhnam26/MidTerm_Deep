@@ -6,13 +6,13 @@
       "test_accuracy": 1.0,
       "test_macro_f1": 1.0,
       "epoch_budget": 148,
-      "metrics_path": "Mid224/final/test/metrics.json"
+      "metrics_path": "mid224/test/metrics.json"
     },
     "32": {
       "test_accuracy": 0.996,
       "test_macro_f1": 0.9959995999599961,
       "epoch_budget": 129,
-      "metrics_path": "Mid32/final/test/metrics.json"
+      "metrics_path": "mid32/test/metrics.json"
     }
   }
 }

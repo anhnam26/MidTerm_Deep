@@ -1,2 +1,7 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Keep public text portable across Windows and Linux.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.docx binary
+# Preserve the exact bytes used by historical dataset and result receipts.
+results/** -text whitespace=cr-at-eol

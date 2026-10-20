@@ -1,8 +1,38 @@
-plan_action/
-data/
-outputs/
+# Local data, training artifacts and course material
+/DataNew/
+/data/
+/outputs/
+/plan_action/
+/Midterm exam.docx
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+
+# Python, tools and editors
 __pycache__/
+*.py[cod]
 .pytest_cache/
-*.pyc
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+
+# Secrets; examples may be tracked
 .env
-DataNew/
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
