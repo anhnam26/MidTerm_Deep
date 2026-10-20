@@ -1,0 +1,3 @@
+# SHA256 of the decoded input-audit cache, verified against the local cache.
+# Exact historical finding only; no path, rule or general hash exclusions.
+f4d0223bfa56d896da257310303c371bff3d10e1:results/resume_verification.json:generic-api-key:39
